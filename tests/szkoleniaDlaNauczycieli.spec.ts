@@ -151,6 +151,16 @@ test.describe('Szkolenia dla nauczycieli', () => {
     })
 
     test.describe('Proces zamówienia - negatywne ścieżki', () => {
+        test('Brak możliwości przejscia dalej z pustym koszykiem', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.kliknijKoszyk()
+
+            await expect(szkoleniaDlaNauczycieliPage.nextButton).not.toBeVisible()
+
+            await szkoleniaDlaNauczycieliPage.wrocNaListeSzkolen()
+
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/szkolenia-dla-nauczycieli/)
+        })
+
         test('Zamówienie bez wyboru odbiorcy faktury', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
             await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
