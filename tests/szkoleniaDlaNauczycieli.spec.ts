@@ -30,7 +30,6 @@ test.describe('Szkolenia dla nauczycieli', () => {
         test('Szczegóły szkolenia - nawigacja do szczegółów', async ({ szkoleniaDlaNauczycieliPage }) => {
             const nazwaSzkolenia = await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
             expect(nazwaSzkolenia).not.toBe('')
-            console.log(`Pobrana nazwa szkolenia: ${nazwaSzkolenia}`)
 
             // Asercje
             const tytulNaStronie = szkoleniaDlaNauczycieliPage.page.locator('h1')
@@ -55,49 +54,49 @@ test.describe('Szkolenia dla nauczycieli', () => {
     })
 
     test.describe('Stopka', () => {
-        test('Weryfikacja adresu', async ({ akademiaPage }) => {
+        test('Weryfikacja adresu', async ({ szkoleniaDlaNauczycieliPage }) => {
             // Asercje
-            await expect(akademiaPage.adres).toBeVisible({ timeout: 3000 })
-            const expectedMessage = await akademiaPage.adres.innerText()
+            await expect(szkoleniaDlaNauczycieliPage.adres).toBeVisible({ timeout: 3000 })
+            const expectedMessage = await szkoleniaDlaNauczycieliPage.adres.innerText()
             expect(expectedMessage).toContain(akademiaTestData.adresWStopce)
         })
 
-        test('Przejście na politykę prywatności', async ({ akademiaPage }) => {
-            await akademiaPage.przejdzNaPolitykePrywatnosci()
+        test('Przejście na politykę prywatności', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.przejdzNaPolitykePrywatnosci()
 
             // Asercje
-            await expect(akademiaPage.page).toHaveURL(/.*polityka-prywatnosci.*/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*polityka-prywatnosci.*/)
             await expect(
-                akademiaPage.page.getByRole('heading', {
+                szkoleniaDlaNauczycieliPage.page.getByRole('heading', {
                     name: 'Polityka Prywatności',
                     level: 1,
                 })
             ).toBeVisible()
         })
 
-        test('Przejście na regulamin szkoleń', async ({ akademiaPage }) => {
-            await akademiaPage.przejdzNaRegulaminSzkolen()
+        test('Przejście na regulamin szkoleń', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.przejdzNaRegulaminSzkolen()
 
             // Asercje
-            await expect(akademiaPage.page).toHaveURL(/.*regulamin.*/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*regulamin.*/)
             await expect(
-                akademiaPage.page.getByRole('heading', {
+                szkoleniaDlaNauczycieliPage.page.getByRole('heading', {
                     name: 'Regulaminy',
                     level: 1,
                 })
             ).toBeVisible()
         })
 
-        test('Przejście na GWO', async ({ akademiaPage }) => {
-            await akademiaPage.przejdzNaGwo()
+        test('Przejście na GWO', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.przejdzNaGwo()
             // Asercje
-            await expect(akademiaPage.page).toHaveURL(/https:\/\/gwo\.pl\/?/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/https:\/\/gwo\.pl\/?/)
         })
 
-        test('Przejście na Facebook', async ({ akademiaPage }) => {
-            await akademiaPage.przejdzNaFacebook()
+        test('Przejście na Facebook', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.przejdzNaFacebook()
             // Asercje
-            await expect(akademiaPage.page).toHaveURL(/https:\/\/pl-pl\.facebook\.com\/GdanskieWydawnictwoOswiatowe\/?/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/https:\/\/pl-pl\.facebook\.com\/GdanskieWydawnictwoOswiatowe\/?/)
         })
     })
 
@@ -198,7 +197,7 @@ test.describe('Szkolenia dla nauczycieli', () => {
             await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
             await szkoleniaDlaNauczycieliPage.handleCartSelectionWithoutLogin()
             await szkoleniaDlaNauczycieliPage.zatwierdzFormularzZamowienia()
-            await szkoleniaDlaNauczycieliPage.page.waitForTimeout(500)
+            await szkoleniaDlaNauczycieliPage.page.waitForSelector('[data-testid="validation-error"]', { state: 'visible' })
 
             for (const komunikat of oczekiwaneKomunikatyWalidacyjneDanych) {
                 await expect(
