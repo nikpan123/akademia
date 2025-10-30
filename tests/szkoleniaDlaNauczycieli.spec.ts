@@ -162,5 +162,14 @@ test.describe('Szkolenia dla nauczycieli', () => {
             await expect(errorAlert.locator('img[alt="error"]')).toBeVisible()
             await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/dane-zamowienia/)
         })
+
+        test('Usunięcie Szkolenie z koszyka', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
+            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
+            await szkoleniaDlaNauczycieliPage.usuniecieSzkoleniaZKoszyka()
+
+            // Asercje
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/szkolenia-dla-nauczycieli/)
+        })
     })
 })

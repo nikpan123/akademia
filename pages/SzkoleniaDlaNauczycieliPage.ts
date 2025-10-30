@@ -29,6 +29,7 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
     readonly paymentErrorMessage: Locator
     readonly validationErrors: Locator
     readonly deliveryErrorAlert: Locator
+    readonly delete: Locator
 
     // Mapa pól formularza (uproszczenie dostępu do inputów)
     private readonly formFields = {
@@ -70,6 +71,7 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         this.paymentErrorMessage = page.locator('.cart-module__validation:has-text("Wybierz formę płatności.")')
         this.validationErrors = page.locator('.validation-error, .error-message')
         this.deliveryErrorAlert = page.locator('.error.error-alert.active.right:has-text("Wybierz, na kogo ma być złożone zamówienie.")')
+        this.delete = page.locator('.remove-btn')
     }
 
     // ============ NAWIGACJA ============
@@ -233,5 +235,11 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         await this.nextButton.click()
         this.waitForLoadState
         return this.deliveryErrorAlert
+    }
+
+    async usuniecieSzkoleniaZKoszyka(): Promise<void> {
+        await this.cartWithoutLogin.click()
+        await this.delete.click()
+        await this.page.waitForURL(/szkolenia-dla-nauczycieli/)
     }
 }
