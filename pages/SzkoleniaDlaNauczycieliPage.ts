@@ -30,6 +30,8 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
     readonly validationErrors: Locator
     readonly deliveryErrorAlert: Locator
     readonly delete: Locator
+    readonly regulationsErrorFrame: Locator
+    readonly regulationsErrorAlert: Locator
 
     // Mapa pól formularza (uproszczenie dostępu do inputów)
     private readonly formFields = {
@@ -72,6 +74,8 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         this.validationErrors = page.locator('.validation-error, .error-message')
         this.deliveryErrorAlert = page.locator('.error.error-alert.active.right:has-text("Wybierz, na kogo ma być złożone zamówienie.")')
         this.delete = page.locator('.remove-btn')
+        this.regulationsErrorFrame = page.locator('.total-regulation__checkbox.error')
+        this.regulationsErrorAlert = page.locator('.error-alert.active.right:has-text("Zaakceptuj regulaminy. Wyraź wymagane zgody.")')
     }
 
     // ============ NAWIGACJA ============
@@ -170,7 +174,7 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         await expect(input).toHaveValue(value)
     }
 
-    private async handleCartSelectionWithoutLogin(): Promise<void> {
+    async handleCartSelectionWithoutLogin(): Promise<void> {
         await this.cartWithoutLogin.click()
         await this.onMeRadioButton.check()
         await expect(this.onMeRadioButton).toBeChecked()
@@ -185,7 +189,7 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         await this.nextButton.click()
     }
 
-    private async fillOrderDetails(dane: DaneZamowieniaBezLogowania | DaneZamowieniaZLogowaniem, includeEmail: boolean = true): Promise<void> {
+    async fillOrderDetails(dane: DaneZamowieniaBezLogowania | DaneZamowieniaZLogowaniem, includeEmail: boolean = true): Promise<void> {
         await this.nextButton.click()
 
         await this.paymentMethodRadioButton.check()
@@ -241,5 +245,31 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         await this.cartWithoutLogin.click()
         await this.delete.click()
         await this.page.waitForURL(/szkolenia-dla-nauczycieli/)
+    }
+
+    async fillAllExceptOneField(dane: DaneZamowieniaBezLogowania, poleDoPomijania: keyof DaneZamowieniaBezLogowania): Promise<void> {
+        // Iterujemy po wszystkich kluczach w danych
+        for (const key of Object.keys(this.formFields) as (keyof DaneZamowieniaBezLogowania)[]) {
+            const selektorPola = this.formFields[key]
+            const locator = this.page.locator(selektorPola)
+
+            // Czekanie na gotowość pola przed interakcją
+            await locator.waitFor({ state: 'visible', timeout: 5000 })
+
+            if (key !== poleDoPomijania) {
+                // Wypełnianie
+                await locator.fill(dane[key])
+                // Weryfikacja, że wypełnianie się powiodło
+                await expect(locator).toHaveValue(dane[key])
+            } else {
+                // Upewniamy się, że pole, które testujemy, jest puste
+                await locator.clear()
+                await expect(locator).toHaveValue('')
+            }
+        }
+    }
+
+    async zatwierdzFormularzZamowienia() {
+        await this.nextButton.click()
     }
 }
