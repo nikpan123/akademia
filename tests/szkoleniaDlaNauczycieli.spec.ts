@@ -149,4 +149,18 @@ test.describe('Szkolenia dla nauczycieli', () => {
             await expect(szkoleniaDlaNauczycieliPage.page.getByText('Dziękujemy za złożenie zamówienia!')).toBeVisible()
         })
     })
+
+    test.describe('Proces zamówienia - negatywne ścieżki', () => {
+        test('Zamówienie bez wyboru odbiorcy faktury', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
+            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
+            const errorAlert = await szkoleniaDlaNauczycieliPage.szkolenieBezOdbiorcyFaktury()
+
+            // Asercje
+            await expect(errorAlert).toBeVisible({ timeout: 5000 })
+            await expect(errorAlert).toContainText('Wybierz, na kogo ma być złożone zamówienie.')
+            await expect(errorAlert.locator('img[alt="error"]')).toBeVisible()
+            await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/dane-zamowienia/)
+        })
+    })
 })

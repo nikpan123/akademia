@@ -28,6 +28,7 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
     readonly orderAndPaymentButton: Locator
     readonly paymentErrorMessage: Locator
     readonly validationErrors: Locator
+    readonly deliveryErrorAlert: Locator
 
     // Mapa pól formularza (uproszczenie dostępu do inputów)
     private readonly formFields = {
@@ -68,6 +69,7 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         this.orderAndPaymentButton = page.getByRole('button', { name: 'Zamawiam i płacę' })
         this.paymentErrorMessage = page.locator('.cart-module__validation:has-text("Wybierz formę płatności.")')
         this.validationErrors = page.locator('.validation-error, .error-message')
+        this.deliveryErrorAlert = page.locator('.error.error-alert.active.right:has-text("Wybierz, na kogo ma być złożone zamówienie.")')
     }
 
     // ============ NAWIGACJA ============
@@ -141,7 +143,7 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         return this.radioButton.nth(index)
     }
 
-    // ============ ELEMENTY ============
+    // ============ ELEMENTY STRONY ============
 
     async kliknijKoszyk(): Promise<void> {
         await this.koszykButton.click()
@@ -222,5 +224,14 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         await this.handleCartSelectionWithLogin()
         await this.fillOrderDetails(dane, false) // Bez email
         await this.handleSummaryAndPayment()
+    }
+
+    // ============ NEGATYWNE ŚCIEŻKI ============
+
+    async szkolenieBezOdbiorcyFaktury(): Promise<Locator> {
+        await this.cartWithoutLogin.click()
+        await this.nextButton.click()
+        this.waitForLoadState
+        return this.deliveryErrorAlert
     }
 }
