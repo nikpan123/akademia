@@ -26,10 +26,12 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
     readonly regulationsCheckbox: Locator
     readonly renouncementCheckbox: Locator
     readonly orderAndPaymentButton: Locator
-    readonly paymentErrorMessage: Locator
-    readonly validationErrors: Locator
     readonly deliveryErrorAlert: Locator
     readonly delete: Locator
+
+    // Walidacje
+    readonly paymentErrorMessage: Locator
+    readonly validationErrors: Locator
     readonly regulationsErrorFrame: Locator
     readonly regulationsErrorAlert: Locator
 
@@ -149,7 +151,9 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         return this.radioButton.nth(index)
     }
 
-    // ============ ELEMENTY STRONY ============
+    async zatwierdzFormularzZamowienia() {
+        await this.nextButton.click()
+    }
 
     async kliknijKoszyk(): Promise<void> {
         await this.koszykButton.click()
@@ -245,31 +249,5 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         await this.cartWithoutLogin.click()
         await this.delete.click()
         await this.page.waitForURL(/szkolenia-dla-nauczycieli/)
-    }
-
-    async fillAllExceptOneField(dane: DaneZamowieniaBezLogowania, poleDoPomijania: keyof DaneZamowieniaBezLogowania): Promise<void> {
-        // Iterujemy po wszystkich kluczach w danych
-        for (const key of Object.keys(this.formFields) as (keyof DaneZamowieniaBezLogowania)[]) {
-            const selektorPola = this.formFields[key]
-            const locator = this.page.locator(selektorPola)
-
-            // Czekanie na gotowość pola przed interakcją
-            await locator.waitFor({ state: 'visible', timeout: 5000 })
-
-            if (key !== poleDoPomijania) {
-                // Wypełnianie
-                await locator.fill(dane[key])
-                // Weryfikacja, że wypełnianie się powiodło
-                await expect(locator).toHaveValue(dane[key])
-            } else {
-                // Upewniamy się, że pole, które testujemy, jest puste
-                await locator.clear()
-                await expect(locator).toHaveValue('')
-            }
-        }
-    }
-
-    async zatwierdzFormularzZamowienia() {
-        await this.nextButton.click()
     }
 }
