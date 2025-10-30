@@ -1,6 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test'
 import { BasePage } from './BasePage'
-import { DaneZamowieniaBezLogowania, DaneZamowieniaZLogowaniem } from '../testData/akademia.data'
+import { DaneZamowieniaBezLogowania, DaneZamowieniaZLogowaniem, WspolneDaneZamowienia } from '../testData/akademia.data'
 
 export class SzkoleniaDlaNauczycieliPage extends BasePage {
     // Lokatory nawigacji i list
