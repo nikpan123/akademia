@@ -2,8 +2,8 @@ import { test, expect } from '../fixtures/akademiaFixtures'
 import { KontaktPage } from '../pages/KontaktPage'
 
 test.describe('Formularz Kontaktowy', () => {
-    test.beforeEach(async ({ page }) => {
-        await page.goto('https://akademia.gwodev.pl/kontakt')
+    test.beforeEach(async ({ kontaktPage }) => {
+        await kontaktPage.otworzKontakt()
     })
 
     test('wypełnij i wyślij formularz kontaktowy - test pozytywny', async ({ page }) => {
@@ -57,6 +57,7 @@ test.describe('Formularz Kontaktowy', () => {
             typSzkolenia: 'e-learning',
             temat: 'Zapytanie o kurs online',
             tresc: 'Krótka wiadomość testowa.',
+            zaznaczKontaktTelefonczny: true,
         }
 
         await formularz.wypelnijFormularzKontaktowy(daneCzesciowe)

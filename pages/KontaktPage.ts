@@ -71,7 +71,7 @@ export class KontaktPage extends BasePage {
         // Checkboxy RODO
         this.rodoDataCheckbox = page.locator('span').filter({ hasText: 'Wyrażam zgodę na przetwarzanie moich danych osobowych w celu udzielenia mi' })
         this.rodoSalesCheckbox = page.locator('span').filter({ hasText: 'Jeżeli moje pytanie dotyczyć' })
-        this.contactAgreementCheckbox = page.locator('#contact_form_contactAgreement')
+        this.contactAgreementCheckbox = page.getByText('Wyrażam zgodę na kontakt')
 
         // Przycisk submit
         this.submitButton = page.getByRole('button', { name: 'Wyślij' })
@@ -93,7 +93,7 @@ export class KontaktPage extends BasePage {
         await this.acceptCookiesButton.click()
     }
     async otworzKontakt(): Promise<void> {
-        await this.otworzStrone(`${this.env.akademia}/kontakt`)
+        await this.page.goto(`${this.env.akademia}/kontakt`)
         await this.page.waitForLoadState('networkidle')
     }
 
