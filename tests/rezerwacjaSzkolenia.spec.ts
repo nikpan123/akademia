@@ -220,7 +220,7 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
                     sameAsBilling: true,
                 },
             })
-
+            await rezerwacjaSzkoleniaPage.page.waitForLoadState('networkidle')
             await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/potwierdzenie/)
         })
 
