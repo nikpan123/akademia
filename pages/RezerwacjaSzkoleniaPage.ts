@@ -28,6 +28,7 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
 
     // Komunikaty
     readonly errorAlert: Locator
+    readonly validationErrors: Locator
 
     constructor(page: Page) {
         super(page)
@@ -48,7 +49,7 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
         this.quantityInput = page.locator('#closed_course_add_to_cart_quantity')
 
         // Uwagi
-        this.commentCheckbox = page.locator('input[name="closed_course_add_to_cart[commentCheckbox]"]')
+        this.commentCheckbox = page.getByText('Dodaj uwagi:')
         this.messageTextarea = page.locator('#closed_course_add_to_cart_message')
         this.messageArea = page.locator('[data-personal-order-form-target="messageArea"]')
         this.symbolCounter = page.locator('[data-personal-order-form-target="symbolCounter"]')
@@ -58,6 +59,7 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
 
         // Komunikaty błędów
         this.errorAlert = page.locator('.error-alert')
+        this.validationErrors = page.locator('.validation-error, .error-message')
     }
 
     // ============ WYPEŁNIANIE FORMULARZA ============
