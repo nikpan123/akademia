@@ -1,151 +1,272 @@
-// import { Page, Locator } from '@playwright/test';
-// import { BasePage } from './BasePage';
+import { Page, Locator } from '@playwright/test'
+import { BasePage } from './BasePage'
 
-// export class KontaktPage extends BasePage {
-//   // Lokatory formularza
-//   readonly fullNameInput: Locator;
-//   readonly countyTomSelectControl: Locator;
-//   readonly countyDropdownInput: Locator;
-//   readonly countyDropdown: Locator;
-//   readonly countySelect: Locator; // Oryginalny select
-//   readonly emailInput: Locator;
-//   readonly phoneInput: Locator;
-//   readonly schoolLevelSelect: Locator;
-//   readonly schoolFunctionSelect: Locator;
-//   readonly courseTypeSelect: Locator;
-//   readonly subjectInput: Locator;
-//   readonly messageTextarea: Locator;
-//   readonly symbolCounter: Locator;
-//   readonly submitButton: Locator;
+export class KontaktPage extends BasePage {
+    // Lokatory formularza
+    readonly fullNameInput: Locator
+    readonly placeTomSelectControl: Locator
+    readonly placeDropdownInput: Locator
+    readonly placeDropdown: Locator
+    readonly placeSelect: Locator
+    readonly emailInput: Locator
+    readonly phoneInput: Locator
+    readonly schoolLevelSelect: Locator
+    readonly schoolFunctionSelect: Locator
+    readonly courseTypeSelect: Locator
+    readonly subjectInput: Locator
+    readonly messageTextarea: Locator
+    readonly symbolCounter: Locator
+    readonly acceptCookiesButton: Locator = this.page.getByRole('button', { name: 'Akceptuję i przechodzę do Serwisu' })
 
-//   constructor(page: Page) {
-//     super(page);
+    // Lokatory dla checkboxów RODO
+    readonly rodoDataCheckbox: Locator
+    readonly rodoSalesCheckbox: Locator
+    readonly contactAgreementCheckbox: Locator
 
-//     // Pola formularza
-//     this.fullNameInput = page.locator('#contact_form_fullName');
+    // Przyciski
+    readonly submitButton: Locator
 
-//     // Tom Select - precyzyjne selektory
-//     this.countyTomSelectControl = page.locator('.cart-text-input.--region .ts-control');
-//     this.countyDropdownInput = page.locator('.dropdown-input');
-//     this.countyDropdown = page.locator('.ts-dropdown');
-//     this.countySelect = page.locator('#contact_form_county');
-//     this.emailInput = page.locator('#contact_form_email');
-//     this.phoneInput = page.locator('#contact_form_phone');
-//     this.schoolLevelSelect = page.locator('#contact_form_schoolLevel');
-//     this.schoolFunctionSelect = page.locator('#contact_form_schoolFunction');
-//     this.courseTypeSelect = page.locator('#contact_form_courseType');
-//     this.subjectInput = page.locator('#contact_form_subject');
-//     this.messageTextarea = page.locator('#contact_form_message');
-//     this.symbolCounter = page.locator('.symbol_count');
-//     this.submitButton = page.getByRole('button', { name: 'Wyślij' });
-//   }
+    // Komunikaty
+    readonly errorAlert: Locator
 
-//   // ============ NAWIGACJA ============
+    // Lokatory dla strony sukcesu (po wysłaniu formularza)
+    readonly successMessage: Locator
+    readonly successContactMessage: Locator
+    readonly returnToHomeLink: Locator
 
-//   async otworzKontakt(): Promise<void> {
-//     await this.otworzStrone(`${this.env.akademia}/kontakt`);
-//   }
+    constructor(page: Page) {
+        super(page)
 
-//   // ============ WYPEŁNIANIE FORMULARZA ============
+        // Imię i nazwisko
+        this.fullNameInput = page.locator('#contact_form_fullName')
 
-//   async wypelnijImieNazwisko(imieNazwisko: string): Promise<void> {
-//     await this.fullNameInput.fill(imieNazwisko);
-//   }
+        // Tom Select - powiat
+        this.placeTomSelectControl = page.locator('#contact_form_county-ts-control')
+        this.placeDropdownInput = page.locator('.ts-dropdown .dropdown-input')
+        this.placeDropdown = page.locator('.ts-dropdown')
+        this.placeSelect = page.locator('#contact_form_county')
 
-//   async wybierzPowiat(powiat: string): Promise<void> {
-//     await this.countyTomSelectControl.click();
-//     await this.countyDropdown.waitFor({ state: 'visible' });
-//     await this.countyDropdownInput.fill(powiat);
-//     await this.page.waitForTimeout(2000);
-//     await this.page.locator('.ts-dropdown-content .option').first().click();
-//   }
+        // E-mail
+        this.emailInput = page.locator('#contact_form_email')
 
-//   async wypelnijEmail(email: string): Promise<void> {
-//     await this.emailInput.fill(email);
-//   }
+        // Telefon
+        this.phoneInput = page.locator('#contact_form_phone')
 
-//   async wypelnijTelefon(telefon: string): Promise<void> {
-//     await this.phoneInput.fill(telefon);
-//   }
+        // Poziom nauczania
+        this.schoolLevelSelect = page.locator('#contact_form_schoolLevel')
 
-//   async wypelnijTemat(temat: string): Promise<void> {
-//     await this.subjectInput.fill(temat);
-//   }
+        // Funkcja w szkole
+        this.schoolFunctionSelect = page.locator('#contact_form_schoolFunction')
 
-//   async wypelnijWiadomosc(wiadomosc: string): Promise<void> {
-//     await this.messageTextarea.fill(wiadomosc);
-//   }
+        // Typ szkolenia
+        this.courseTypeSelect = page.locator('#contact_form_courseType')
 
-//   async wybierzPoziomNauczania(poziom: 'kindergarten' | 'primary-school' | 'high-school'): Promise<void> {
-//     await this.schoolLevelSelect.selectOption(poziom);
-//   }
+        // Temat wiadomości
+        this.subjectInput = page.locator('#contact_form_subject')
 
-//   async wybierzFunkcjeWSzkole(funkcja: 'director' | 'vice-director' | ''): Promise<void> {
-//     if (funkcja) {
-//       await this.schoolFunctionSelect.selectOption(funkcja);
-//     }
-//   }
+        // Treść wiadomości
+        this.messageTextarea = page.locator('#contact_form_message')
+        this.symbolCounter = page.locator('[data-contact-target="symbolCounter"]')
 
-//   async wybierzTypSzkolenia(typ: 'paid-course' | 'closed-course' | 'e-learning'): Promise<void> {
-//     await this.courseTypeSelect.selectOption(typ);
-//   }
+        // Checkboxy RODO
+        this.rodoDataCheckbox = page.locator('span').filter({ hasText: 'Wyrażam zgodę na przetwarzanie moich danych osobowych w celu udzielenia mi' })
+        this.rodoSalesCheckbox = page.locator('span').filter({ hasText: 'Jeżeli moje pytanie dotyczyć' })
+        this.contactAgreementCheckbox = page.locator('#contact_form_contactAgreement')
 
-//   async kliknijWyslij(): Promise<void> {
-//     await this.submitButton.click();
-//   }
+        // Przycisk submit
+        this.submitButton = page.getByRole('button', { name: 'Wyślij' })
 
-//   // ============ WERYFIKACJA ============
+        // Komunikaty błędów
+        this.errorAlert = page.locator('.error-alert')
 
-//   async sprawdzCzyPowiatWybrany(): Promise<boolean> {
-//     // Sprawdź czy oryginalny select ma wartość (nie pusty string)
-//     const value = await this.countySelect.inputValue();
-//     return value !== '';
-//   }
+        // Strona sukcesu
+        this.successMessage = page.locator('.cart-module__stand-alone .heading strong', { hasText: 'Dziękujemy za wysłanie wiadomości.' })
+        this.successContactMessage = page.locator('.cart-module__stand-alone .heading', {
+            hasText: 'Wkrótce skontaktujemy się z Tobą poprzez podany adres e-mail.',
+        })
+        this.returnToHomeLink = page.getByRole('link', { name: 'Wróć do strony głównej' })
+    }
 
-//   // ============ METODA KOMPLEKSOWA ============
+    // ============ WYPEŁNIANIE FORMULARZA ============
 
-//   async wypelnijFormularz(dane: {
-//     imieNazwisko: string;
-//     powiat: string;
-//     email: string;
-//     telefon?: string;
-//     poziomNauczania: 'kindergarten' | 'primary-school' | 'high-school';
-//     funkcjaWSzkole?: 'director' | 'vice-director' | '';
-//     typSzkolenia: 'paid-course' | 'closed-course' | 'e-learning';
-//     temat: string;
-//     wiadomosc: string;
-//   }): Promise<void> {
-//     await this.wypelnijImieNazwisko(dane.imieNazwisko);
-//     await this.wybierzPowiat(dane.powiat);
-//     await this.wypelnijEmail(dane.email);
+    async akceptujCookies(): Promise<void> {
+        await this.acceptCookiesButton.click()
+    }
+    async otworzKontakt(): Promise<void> {
+        await this.otworzStrone(`${this.env.akademia}/kontakt`)
+        await this.page.waitForLoadState('networkidle')
+    }
 
-//     if (dane.telefon) {
-//       await this.wypelnijTelefon(dane.telefon);
-//     }
+    async wypelnijImieNazwisko(imieNazwisko: string): Promise<void> {
+        await this.fullNameInput.fill(imieNazwisko)
+    }
 
-//     await this.wybierzPoziomNauczania(dane.poziomNauczania);
+    async wybierzPowiat(powiat: string): Promise<void> {
+        await this.placeTomSelectControl.click()
+        await this.placeDropdown.waitFor({ state: 'visible' })
+        await this.placeDropdownInput.fill(powiat)
+        await this.page.waitForTimeout(2000)
+        await this.page.locator('.ts-dropdown-content .option').first().click()
+    }
 
-//     if (dane.funkcjaWSzkole) {
-//       await this.wybierzFunkcjeWSzkole(dane.funkcjaWSzkole);
-//     }
+    async wypelnijEmail(email: string): Promise<void> {
+        await this.emailInput.fill(email)
+    }
 
-//     await this.wybierzTypSzkolenia(dane.typSzkolenia);
-//     await this.wypelnijTemat(dane.temat);
-//     await this.wypelnijWiadomosc(dane.wiadomosc);
-//   }
+    async wypelnijTelefon(telefon: string): Promise<void> {
+        if (telefon) {
+            await this.phoneInput.fill(telefon)
+        }
+    }
 
-//   async wyslijFormularz(dane: {
-//     imieNazwisko: string;
-//     powiat: string;
-//     email: string;
-//     telefon?: string;
-//     poziomNauczania: 'kindergarten' | 'primary-school' | 'high-school';
-//     funkcjaWSzkole?: 'director' | 'vice-director' | '';
-//     typSzkolenia: 'paid-course' | 'closed-course' | 'e-learning';
-//     temat: string;
-//     wiadomosc: string;
-//   }): Promise<void> {
-//     await this.wypelnijFormularz(dane);
-//     await this.kliknijWyslij();
-//   }
-// }
+    async wybierzPoziomNauczania(poziom: string): Promise<void> {
+        const currentValue = await this.schoolLevelSelect.inputValue()
+        if (currentValue !== poziom) {
+            await this.schoolLevelSelect.selectOption(poziom)
+        }
+    }
+
+    async wybierzFunkcjeWSzkole(funkcja: string): Promise<void> {
+        if (funkcja) {
+            const currentValue = await this.schoolFunctionSelect.inputValue()
+            if (currentValue !== funkcja) {
+                await this.schoolFunctionSelect.selectOption(funkcja)
+            }
+        }
+    }
+
+    async wybierzTypSzkolenia(typ: string): Promise<void> {
+        const currentValue = await this.courseTypeSelect.inputValue()
+        if (currentValue !== typ) {
+            await this.courseTypeSelect.selectOption(typ)
+        }
+    }
+
+    async wypelnijTemat(temat: string): Promise<void> {
+        await this.subjectInput.fill(temat)
+    }
+
+    async wypelnijTresc(tresc: string): Promise<void> {
+        await this.messageTextarea.fill(tresc)
+    }
+
+    async wyslijFormularz(): Promise<void> {
+        await this.submitButton.click()
+    }
+
+    // ============ METODY DLA CHECKBOXÓW RODO ============
+
+    async zaznaczZgodeNaPrzetwarzanieDanych(): Promise<void> {
+        if (!(await this.rodoDataCheckbox.isChecked())) {
+            await this.rodoDataCheckbox.check()
+        }
+    }
+
+    async zaznaczZgodeNaInformacjeHandlowe(): Promise<void> {
+        if (!(await this.rodoSalesCheckbox.isChecked())) {
+            await this.rodoSalesCheckbox.check()
+        }
+    }
+
+    async zaznaczZgodeNaKontaktTelefoniczny(zaznacz: boolean = true): Promise<void> {
+        if (zaznacz) {
+            if (!(await this.contactAgreementCheckbox.isChecked())) {
+                await this.contactAgreementCheckbox.check()
+            }
+        } else {
+            if (await this.contactAgreementCheckbox.isChecked()) {
+                await this.contactAgreementCheckbox.uncheck()
+            }
+        }
+    }
+
+    // ============ METODY DLA STRONY SUKCESU ============
+
+    async sprawdzCzyStronaSukcesuWidoczna(): Promise<boolean> {
+        return await this.successMessage.isVisible()
+    }
+
+    async pobierzTekstKomunikatuSukcesu(): Promise<string> {
+        return await this.successMessage.innerText()
+    }
+
+    async pobierzTekstKomunikatuKontaktowego(): Promise<string> {
+        return await this.successContactMessage.innerText()
+    }
+
+    async kliknijPowrotDoStronyGlownej(): Promise<void> {
+        await this.returnToHomeLink.click()
+    }
+
+    async sprawdzCzyPrzekierowanoNaStroneGlowna(): Promise<boolean> {
+        return this.page.url().includes('/')
+    }
+
+    // ============ WERYFIKACJE ============
+
+    async sprawdzCzyPowiatWybrany(): Promise<boolean> {
+        const value = await this.placeSelect.inputValue()
+        return value !== '' && value !== 'Wybierz powiat'
+    }
+
+    async pobierzLicznikZnakow(): Promise<string> {
+        return await this.symbolCounter.innerText()
+    }
+
+    // ============ METODA KOMPLEKSOWA ============
+
+    async wypelnijFormularzKontaktowy(dane: {
+        imieNazwisko: string
+        powiat: string
+        email: string
+        telefon?: string
+        poziomNauczania: string
+        funkcjaWSzkole?: string
+        typSzkolenia: string
+        temat: string
+        tresc: string
+        zaznaczKontaktTelefonczny?: boolean
+    }): Promise<void> {
+        await this.akceptujCookies()
+        await this.wybierzPowiat(dane.powiat)
+        await this.wypelnijImieNazwisko(dane.imieNazwisko)
+        await this.wypelnijEmail(dane.email)
+        await this.wybierzPoziomNauczania(dane.poziomNauczania)
+        await this.wybierzTypSzkolenia(dane.typSzkolenia)
+        await this.wypelnijTemat(dane.temat)
+        await this.wypelnijTresc(dane.tresc)
+
+        if (dane.telefon) {
+            await this.wypelnijTelefon(dane.telefon)
+        }
+
+        if (dane.funkcjaWSzkole) {
+            await this.wybierzFunkcjeWSzkole(dane.funkcjaWSzkole)
+        }
+        await this.page.locator('.rodo-block').waitFor({ state: 'visible' })
+        await this.zaznaczZgodeNaPrzetwarzanieDanych()
+        await this.zaznaczZgodeNaInformacjeHandlowe()
+
+        if (dane.zaznaczKontaktTelefonczny !== undefined) {
+            await this.zaznaczZgodeNaKontaktTelefoniczny(dane.zaznaczKontaktTelefonczny)
+        } else {
+            await this.zaznaczZgodeNaKontaktTelefoniczny(false)
+        }
+    }
+
+    async wyslijKontakt(dane: {
+        imieNazwisko: string
+        powiat: string
+        email: string
+        telefon?: string
+        poziomNauczania: string
+        funkcjaWSzkole?: string
+        typSzkolenia: string
+        temat: string
+        tresc: string
+        zaznaczKontaktTelefonczny?: boolean
+    }): Promise<void> {
+        await this.wypelnijFormularzKontaktowy(dane)
+        await this.wyslijFormularz()
+    }
+}

@@ -183,7 +183,6 @@ test.describe('Szkolenia dla nauczycieli', () => {
 
                 await szkoleniaDlaNauczycieliPage.handleCartSelectionWithoutLogin()
                 await szkoleniaDlaNauczycieliPage.zatwierdzFormularzZamowienia()
-                await szkoleniaDlaNauczycieliPage.page.waitForSelector('[data-testid="validation-error"]', { state: 'visible' })
 
                 for (const komunikat of oczekiwaneKomunikaty) {
                     await expect(

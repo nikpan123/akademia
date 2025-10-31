@@ -1,52 +1,80 @@
-// import { test, expect } from '../fixtures/akademiaFixtures';
-// import { kontaktTestData } from '../testData/kontakt.data';
+import { test, expect } from '../fixtures/akademiaFixtures'
+import { KontaktPage } from '../pages/KontaktPage'
 
-// test.describe('Kontakt - formularz', () => {
+test.describe('Formularz Kontaktowy', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('https://akademia.gwodev.pl/kontakt')
+    })
 
-//   test.beforeEach(async ({ kontaktPage }) => {
-//     await kontaktPage.otworzKontakt();
-//   });
+    test('wypełnij i wyślij formularz kontaktowy - test pozytywny', async ({ page }) => {
+        const formularz = new KontaktPage(page)
 
-//   test('Wypełnienie pełnego formularza', async ({ kontaktPage }) => {
-//     await kontaktPage.wyslijFormularz(kontaktTestData.prawidloweDane);
+        const dane = {
+            imieNazwisko: 'Jan Kowalski',
+            powiat: 'Warszawa',
+            email: 'jan.kowalski@example.com',
+            telefon: '123456789',
+            poziomNauczania: 'primary-school',
+            funkcjaWSzkole: 'director',
+            typSzkolenia: 'paid-course',
+            temat: 'Pytanie o szkolenie',
+            tresc: 'Chciałbym dowiedzieć się więcej o dostępnych szkoleniach dla nauczycieli.',
+        }
 
-//     // Asercja - sprawdź czy nie ma błędów walidacji
-//     const validationError = await kontaktPage.page.locator('.error, .invalid').count();
-//     expect(validationError).toBe(0);
-//   });
+        await formularz.wypelnijFormularzKontaktowy(dane)
 
-//   test('Weryfikacja wyboru powiatu', async ({ kontaktPage }) => {
-//     await kontaktPage.wybierzPowiat('gdański');
+        expect(await formularz.sprawdzCzyPowiatWybrany()).toBeTruthy()
+        const licznik = await formularz.pobierzLicznikZnakow()
+        expect(licznik).toContain('73')
 
-//     // Sprawdź czy powiat został wybrany
-//     const isSelected = await kontaktPage.sprawdzCzyPowiatWybrany();
-//     expect(isSelected).toBe(true);
+        await formularz.wyslijFormularz()
+        await expect(page).toHaveURL(/potwierdzenie/)
 
-//     // Sprawdź wizualnie czy pokazuje "gdański"
-//     const selectedText = await kontaktPage.page.locator('.ts-control .item').textContent();
-//     expect(selectedText).toContain('gdański');
-//   });
+        await expect(formularz.successMessage).toBeVisible()
+        expect(await formularz.pobierzTekstKomunikatuSukcesu()).toContain('Dziękujemy za wysłanie wiadomości.')
 
-//   test('Pełny formularz krok po kroku', async ({ kontaktPage }) => {
-//     await kontaktPage.wypelnijImieNazwisko('Jan Kowalski');
-//     await kontaktPage.wybierzPowiat('gdański');
+        await expect(formularz.successContactMessage).toBeVisible()
+        expect(await formularz.pobierzTekstKomunikatuKontaktowego()).toContain('Wkrótce skontaktujemy się z Tobą poprzez podany adres e-mail.')
 
-//     // Weryfikacja po wyborze powiatu
-//     expect(await kontaktPage.sprawdzCzyPowiatWybrany()).toBe(true);
+        await expect(formularz.returnToHomeLink).toBeVisible()
+        expect(await formularz.returnToHomeLink.getAttribute('href')).toBe('/')
 
-//     await kontaktPage.wypelnijEmail('test@example.com');
-//     await kontaktPage.wypelnijTelefon('123456789');
-//     await kontaktPage.wybierzPoziomNauczania('primary-school');
-//     await kontaktPage.wybierzFunkcjeWSzkole('director');
-//     await kontaktPage.wybierzTypSzkolenia('paid-course');
-//     await kontaktPage.wypelnijTemat('Pytanie testowe');
-//     await kontaktPage.wypelnijWiadomosc('Treść testowej wiadomości');
+        await formularz.kliknijPowrotDoStronyGlownej()
+        await expect(page).toHaveURL(/\/$/)
+        expect(await formularz.sprawdzCzyPrzekierowanoNaStroneGlowna()).toBeTruthy()
+    })
 
-//     await kontaktPage.kliknijWyslij();
+    test('wypełnij formularz z opcjonalnymi polami - test częściowy', async ({ page }) => {
+        const formularz = new KontaktPage(page)
 
-//     // Asercje - brak błędów walidacji
-//     const errorCount = await kontaktPage.page.locator('.invalid, .error').count();
-//     expect(errorCount).toBe(0);
-//   });
+        const daneCzesciowe = {
+            imieNazwisko: 'Anna Nowak',
+            powiat: 'Kraków',
+            email: 'anna.nowak@example.com',
+            // telefon pominięty
+            poziomNauczania: 'high-school',
+            // funkcjaWSzkole pominięta
+            typSzkolenia: 'e-learning',
+            temat: 'Zapytanie o kurs online',
+            tresc: 'Krótka wiadomość testowa.',
+        }
 
-// });
+        await formularz.wypelnijFormularzKontaktowy(daneCzesciowe)
+
+        await expect(formularz.phoneInput).toHaveValue('')
+        await expect(formularz.schoolFunctionSelect).toHaveValue('')
+
+        await expect(formularz.emailInput).toHaveValue(daneCzesciowe.email)
+        await expect(formularz.messageTextarea).toHaveValue(daneCzesciowe.tresc)
+
+        // Nie wysyłamy, tylko sprawdzamy
+    })
+
+    test('weryfikacja błędu - brak wypełnienia wymaganych pól', async ({ page }) => {
+        const formularz = new KontaktPage(page)
+
+        await formularz.wyslijFormularz()
+
+        await expect(formularz.errorAlert).toBeVisible()
+    })
+})
