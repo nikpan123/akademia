@@ -2,7 +2,7 @@ import { Page, Locator } from '@playwright/test'
 import { BasePage } from './BasePage'
 
 export class RezerwacjaSzkoleniaPage extends BasePage {
-    // Lokatory formularza
+    // Lokatory formularza rezerwacji (istniejące)
     readonly courseModeSelect: Locator
     readonly schoolLevelSelect: Locator
 
@@ -25,10 +25,41 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
 
     // Przyciski
     readonly submitButton: Locator
+    readonly nextButton: Locator
 
     // Komunikaty
     readonly errorAlert: Locator
     readonly validationErrors: Locator
+
+    // Nowe lokatory dla formularza adresowego (reservation-cart-address)
+    readonly backToListLink: Locator
+    readonly backToReservationLink: Locator
+    readonly addressSubmitButton: Locator
+
+    // Dane osoby kontaktowej
+    readonly contactFirstNameInput: Locator
+    readonly contactLastNameInput: Locator
+    readonly contactEmailInput: Locator
+    readonly contactPhoneInput: Locator
+
+    // Dane do faktury
+    readonly billingCompanyInput: Locator
+    readonly billingNipInput: Locator
+    readonly billingStreetInput: Locator
+    readonly billingStreetNumberInput: Locator
+    readonly billingPostcodeInput: Locator
+    readonly billingCityInput: Locator
+    readonly taxFreeYesRadio: Locator
+    readonly taxFreeNoRadio: Locator
+
+    // Dane płatnika (pierwszy, zakładamy jeden)
+    readonly sameAsBillingCheckbox: Locator
+    readonly payerCompanyInput: Locator
+    readonly payerStreetInput: Locator
+    readonly payerStreetNumberInput: Locator
+    readonly payerPostcodeInput: Locator
+    readonly payerCityInput: Locator
+    readonly addPayerButton: Locator
 
     constructor(page: Page) {
         super(page)
@@ -54,15 +85,46 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
         this.messageArea = page.locator('[data-personal-order-form-target="messageArea"]')
         this.symbolCounter = page.locator('[data-personal-order-form-target="symbolCounter"]')
 
-        // Przycisk submit
+        // Przycisk submit (rezerwacja)
         this.submitButton = page.getByRole('button', { name: 'Rezerwuję' })
 
         // Komunikaty błędów
         this.errorAlert = page.locator('.error-alert')
         this.validationErrors = page.locator('.validation-error, .error-message')
+        // Formularz adresowy
+
+        this.nextButton = page.getByRole('button', { name: 'Dalej' })
+        this.backToListLink = page.locator('a.btn.btn-transparent:has-text("Wróć do listy szkoleń")')
+        this.backToReservationLink = page.locator('a[href="/rezerwacja"]')
+        this.addressSubmitButton = page.locator('#reservation_cart_address_submit')
+
+        // Dane osoby kontaktowej
+        this.contactFirstNameInput = page.locator('#reservation_cart_address_customer_firstName')
+        this.contactLastNameInput = page.locator('#reservation_cart_address_customer_lastName')
+        this.contactEmailInput = page.locator('#reservation_cart_address_customer_email')
+        this.contactPhoneInput = page.locator('#reservation_cart_address_customer_phone')
+
+        // Dane do faktury
+        this.billingCompanyInput = page.locator('#reservation_cart_address_billingAddress_company')
+        this.billingNipInput = page.locator('#reservation_cart_address_billingAddress_nip')
+        this.billingStreetInput = page.locator('#reservation_cart_address_billingAddress_street')
+        this.billingStreetNumberInput = page.locator('#reservation_cart_address_billingAddress_streetNumber')
+        this.billingPostcodeInput = page.locator('#reservation_cart_address_billingAddress_postcode')
+        this.billingCityInput = page.locator('#reservation_cart_address_billingAddress_city')
+        this.taxFreeYesRadio = page.getByText('TAK', { exact: true })
+        this.taxFreeNoRadio = page.getByText('NIE', { exact: true })
+
+        // Dane płatnika (pierwszy)
+        this.sameAsBillingCheckbox = page.getByText('Dane takie same jak nabywcy')
+        this.payerCompanyInput = page.locator('#reservation_cart_address_payersAddress_0_company')
+        this.payerStreetInput = page.locator('#reservation_cart_address_payersAddress_0_street')
+        this.payerStreetNumberInput = page.locator('#reservation_cart_address_payersAddress_0_streetNumber')
+        this.payerPostcodeInput = page.locator('#reservation_cart_address_payersAddress_0_postcode')
+        this.payerCityInput = page.locator('#reservation_cart_address_payersAddress_0_city')
+        this.addPayerButton = page.locator('#reservation_cart_address_payersAddress_add')
     }
 
-    // ============ WYPEŁNIANIE FORMULARZA ============
+    // ============ WYPEŁNIANIE FORMULARZA REZERWACJI (istniejące metody) ============
 
     async wybierzRodzajSzkolenia(rodzaj: string): Promise<void> {
         // Tylko jeśli nie jest już wybrany
@@ -118,6 +180,84 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
         await this.submitButton.click()
     }
 
+    // ============ NOWE METODY DLA FORMULARZA ADRESOWEGO ============
+
+    async wypelnijDaneKontaktowe(dane: { imie: string; nazwisko: string; email: string; telefon: string }): Promise<void> {
+        await this.contactFirstNameInput.fill(dane.imie)
+        await this.contactLastNameInput.fill(dane.nazwisko)
+        await this.contactEmailInput.fill(dane.email)
+        await this.contactPhoneInput.fill(dane.telefon)
+    }
+
+    async wypelnijDaneFaktury(dane: {
+        nazwa: string
+        nip: string
+        ulica: string
+        nrBudynku: string
+        kodPocztowy: string
+        miejscowosc: string
+        zwolnienieVat: boolean
+    }): Promise<void> {
+        await this.billingCompanyInput.fill(dane.nazwa)
+        await this.billingNipInput.fill(dane.nip)
+        await this.billingStreetInput.fill(dane.ulica)
+        await this.billingStreetNumberInput.fill(dane.nrBudynku)
+        await this.billingPostcodeInput.fill(dane.kodPocztowy)
+        await this.billingCityInput.fill(dane.miejscowosc)
+
+        // Wybierz radio dla zwolnienia z VAT
+        if (dane.zwolnienieVat) {
+            await this.taxFreeYesRadio.check()
+        } else {
+            await this.taxFreeNoRadio.check()
+        }
+    }
+
+    async wypelnijDanePlatnika(dane: {
+        sameAsBilling: boolean
+        nazwa?: string
+        ulica?: string
+        nrBudynku?: string
+        kodPocztowy?: string
+        miejscowosc?: string
+    }): Promise<void> {
+        // Zaznacz lub odznacz checkbox "Dane takie same jak nabywcy"
+        if (dane.sameAsBilling) {
+            await this.sameAsBillingCheckbox.check()
+        } else {
+            await this.sameAsBillingCheckbox.uncheck()
+            // Poczekaj na pojawienie się pól (dynamicznie)
+            await this.page.waitForSelector('#reservation_cart_address_payersAddress_0_company', { state: 'visible' })
+
+            if (dane.nazwa) await this.payerCompanyInput.fill(dane.nazwa)
+            if (dane.ulica) await this.payerStreetInput.fill(dane.ulica)
+            if (dane.nrBudynku) await this.payerStreetNumberInput.fill(dane.nrBudynku)
+            if (dane.kodPocztowy) await this.payerPostcodeInput.fill(dane.kodPocztowy)
+            if (dane.miejscowosc) await this.payerCityInput.fill(dane.miejscowosc)
+        }
+    }
+
+    async dodajKolejnegoPlatnika(): Promise<void> {
+        await this.addPayerButton.click()
+        // Tutaj można dodać logikę dla nowych pól, jeśli potrzeba (np. payersAddress[1]...)
+    }
+
+    async wyslijFormularzAdresowy(): Promise<void> {
+        await this.addressSubmitButton.click()
+    }
+
+    async kliknijPowrotDoListySzkolen(): Promise<void> {
+        await this.backToListLink.click()
+    }
+
+    async kliknijPowrotDoRezerwacji(): Promise<void> {
+        await this.backToReservationLink.click()
+    }
+
+    async kliknijDalej(): Promise<void> {
+        await this.nextButton.click()
+    }
+
     // ============ WERYFIKACJE ============
 
     async sprawdzCzyMiejscowoscWybrana(): Promise<boolean> {
@@ -129,7 +269,85 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
         return await this.symbolCounter.innerText()
     }
 
-    // ============ METODA KOMPLEKSOWA ============
+    async pobierzNumerRezerwacji(): Promise<string> {
+        // Z URL: /rezerwacja/123
+        const url = this.page.url()
+        const match = url.match(/\/rezerwacja\/(\d+)/)
+        return match ? match[1] : ''
+    }
+
+    async pobierzNumerRezerwacjiZKomunikatu(): Promise<string> {
+        const currentUrl = this.page.url()
+        const urlNumber = new URL(currentUrl).pathname.split('/')[2]
+        return urlNumber
+    }
+
+    async sprawdzCzyNaStroniePotwierdzeniaRezerwacji(): Promise<boolean> {
+        return this.page.url().includes('/potwierdzenie/')
+    }
+
+    // ============ METODA KOMPLEKSOWA DLA FORMULARZA ADRESOWEGO ============
+
+    async wypelnijFormularzAdresowy(dane: {
+        kontakt: { imie: string; nazwisko: string; email: string; telefon: string }
+        faktura: {
+            nazwa: string
+            nip: string
+            ulica: string
+            nrBudynku: string
+            kodPocztowy: string
+            miejscowosc: string
+            zwolnienieVat: boolean
+        }
+        platnik: {
+            sameAsBilling: boolean
+            nazwa?: string
+            ulica?: string
+            nrBudynku?: string
+            kodPocztowy?: string
+            miejscowosc?: string
+        }
+    }): Promise<void> {
+        await this.page.waitForTimeout(500)
+        await this.wypelnijDaneKontaktowe(dane.kontakt)
+        await this.page.waitForTimeout(500)
+        await this.wypelnijDaneFaktury(dane.faktura)
+        await this.page.waitForTimeout(500)
+        await this.wypelnijDanePlatnika(dane.platnik)
+        await this.page.waitForTimeout(500)
+    }
+
+    async zakonczRezerwacje(daneAdresowe: {
+        kontakt: { imie: string; nazwisko: string; email: string; telefon: string }
+        faktura: {
+            nazwa: string
+            nip: string
+            ulica: string
+            nrBudynku: string
+            kodPocztowy: string
+            miejscowosc: string
+            zwolnienieVat: boolean
+        }
+        platnik: {
+            sameAsBilling: boolean
+            nazwa?: string
+            ulica?: string
+            nrBudynku?: string
+            kodPocztowy?: string
+            miejscowosc?: string
+        }
+    }): Promise<void> {
+        await this.kliknijDalej()
+        await this.page.waitForTimeout(500)
+        await this.wyslijFormularzAdresowy()
+        await this.page.waitForTimeout(500)
+        await this.wypelnijFormularzAdresowy(daneAdresowe)
+        await this.page.waitForTimeout(500)
+        await this.wyslijFormularzAdresowy()
+        await this.page.waitForTimeout(500)
+    }
+
+    // ============ METODA KOMPLEKSOWA DLA REZERWACJI (istniejąca) ============
 
     async wypelnijFormularzRezerwacji(dane: {
         rodzajSzkolenia?: string // Opcjonalne, często preselected

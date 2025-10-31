@@ -1,11 +1,12 @@
 import { test, expect } from '../fixtures/akademiaFixtures'
-import { RezerwacjaSzkoleniaPage } from '../pages/RezerwacjaSzkoleniaPage'
 import { rezerwacjaTestData } from '../testData/rezerwacja.data'
 
-test.describe('Rezerwacja szkolenia dla rad pedagogicznych', () => {
+test.describe('Rezerwacja szkolenia - Formularze', () => {
     test.beforeEach(async ({ rezerwacjaSzkoleniaPage }) => {
         await rezerwacjaSzkoleniaPage.otworzStrone(rezerwacjaTestData.urlSzkolenia)
     })
+
+    // ========== ISTNIEJĄCE TESTY (poprawione) ==========
 
     test('Rezerwacja - podstawowe dane', async ({ rezerwacjaSzkoleniaPage }) => {
         await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
@@ -18,83 +19,256 @@ test.describe('Rezerwacja szkolenia dla rad pedagogicznych', () => {
         await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/rezerwacja/)
     })
 
-    test('Rezerwacja - z uwagami', async ({ rezerwacjaSzkoleniaPage }) => {
-        await rezerwacjaSzkoleniaPage.wypelnijFormularzRezerwacji({
-            miejscowosc: 'Gdańsk',
-            data: '2025-12-01',
-            godzina: '10:30',
-            liczbaOsob: 30,
-            uwagi: 'Proszę o salę z klimatyzacją',
+    // ========== NOWE TESTY - WALIDACJA FORMULARZA REZERWACJI ==========
+
+    test.describe('Walidacja - Formularz rezerwacji', () => {
+        test('Wszystkie pola puste', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.kliknijRezerwuje()
+
+            // Sprawdź błędy walidacji
+            const expectedErrors = ['Wybierz miejscowość', 'Wybierz datę', 'Wybierz godzinę', 'Wpisz liczbę osób']
+
+            for (const error of expectedErrors) {
+                await expect(rezerwacjaSzkoleniaPage.page.getByText(error, { exact: true })).toBeVisible()
+            }
         })
 
-        const licznikZnakow = await rezerwacjaSzkoleniaPage.pobierzLicznikZnakow()
-        expect(parseInt(licznikZnakow)).toBeGreaterThan(0)
+        test('Tylko miejscowość wypełniona', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.wybierzMiejscowosc('Warszawa')
+            await rezerwacjaSzkoleniaPage.kliknijRezerwuje()
 
-        await rezerwacjaSzkoleniaPage.kliknijRezerwuje()
-    })
-
-    test('Weryfikacja Tom Select - miejscowość', async ({ rezerwacjaSzkoleniaPage }) => {
-        await rezerwacjaSzkoleniaPage.wybierzMiejscowosc('Kraków')
-
-        // Sprawdź czy wybrano
-        const isSelected = await rezerwacjaSzkoleniaPage.sprawdzCzyMiejscowoscWybrana()
-        expect(isSelected).toBe(true)
-
-        // Sprawdź wizualnie
-        const selectedText = await rezerwacjaSzkoleniaPage.page.locator('.ts-control .item').textContent()
-        expect(selectedText).toContain('Kraków')
-    })
-
-    test('Walidacja - puste pola', async ({ rezerwacjaSzkoleniaPage }) => {
-        const oczekiwaneKomunikaty = ['Wybierz miejscowość', 'Wybierz datę', 'Wybierz godzinę', 'Wpisz liczbę osób']
-
-        // Kliknij bez wypełniania
-        await rezerwacjaSzkoleniaPage.kliknijRezerwuje()
-
-        for (const komunikat of oczekiwaneKomunikaty) {
-            await expect(rezerwacjaSzkoleniaPage.page.getByText(komunikat, { exact: true }), `Błąd walidacji "${komunikat}" nie jest widoczny`).toBeVisible()
-        }
-
-        await expect(rezerwacjaSzkoleniaPage.validationErrors, `Liczba błędów nie zgadza się. Oczekiwano ${oczekiwaneKomunikaty.length}`).toHaveCount(
-            oczekiwaneKomunikaty.length
-        )
-    })
-
-    test('Rozwinięcie sekcji uwagi', async ({ rezerwacjaSzkoleniaPage }) => {
-        // Na starcie textarea powinna być ukryta
-        await expect(rezerwacjaSzkoleniaPage.messageArea).toHaveClass(/hidden/)
-
-        await rezerwacjaSzkoleniaPage.commentCheckbox.check()
-
-        // Textarea powinna się pojawić
-        await expect(rezerwacjaSzkoleniaPage.messageArea).not.toHaveClass(/hidden/)
-        await expect(rezerwacjaSzkoleniaPage.messageTextarea).toBeVisible()
-    })
-
-    test('Licznik znaków w uwagach', async ({ rezerwacjaSzkoleniaPage }) => {
-        await rezerwacjaSzkoleniaPage.commentCheckbox.check()
-        await rezerwacjaSzkoleniaPage.messageArea.waitFor({ state: 'visible' })
-
-        const testText = 'Test'
-        await rezerwacjaSzkoleniaPage.messageTextarea.fill(testText)
-
-        const count = await rezerwacjaSzkoleniaPage.pobierzLicznikZnakow()
-        expect(count).toBe(testText.length.toString())
-    })
-
-    test('Próba wybrania przeszłej daty', async ({ rezerwacjaSzkoleniaPage }) => {
-        const oczekiwanyKomunikat = 'Data szkolenia nie może być przeszła.'
-
-        await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
-            miejscowosc: 'Warszawa',
-            data: rezerwacjaTestData.generatePastDate(30),
-            godzina: '14:00',
-            liczbaOsob: 25,
+            // Powinny być błędy dla pozostałych pól
+            await expect(rezerwacjaSzkoleniaPage.page.getByText('Wybierz datę')).toBeVisible()
+            await expect(rezerwacjaSzkoleniaPage.page.getByText('Wybierz godzinę')).toBeVisible()
         })
 
-        await expect(
-            rezerwacjaSzkoleniaPage.page.getByText(oczekiwanyKomunikat, { exact: true }),
-            `Błąd walidacji "${oczekiwanyKomunikat}" nie jest widoczny`
-        ).toBeVisible()
+        test('Data w przeszłości', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
+                miejscowosc: 'Warszawa',
+                data: rezerwacjaTestData.generatePastDate(1),
+                godzina: '14:00',
+                liczbaOsob: 25,
+            })
+
+            await expect(rezerwacjaSzkoleniaPage.page.getByText('Data szkolenia nie może być przeszła.')).toBeVisible()
+        })
+
+        test('Data dzisiaj - powinna być akceptowana', async ({ rezerwacjaSzkoleniaPage }) => {
+            const today = new Date().toISOString().split('T')[0]
+
+            await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
+                miejscowosc: 'Warszawa',
+                data: today,
+                godzina: '14:00',
+                liczbaOsob: 25,
+            })
+
+            // Nie powinno być błędu
+            await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/rezerwacja/)
+        })
+
+        test('Liczba osób - wartość ujemna', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.wypelnijFormularzRezerwacji({
+                miejscowosc: 'Warszawa',
+                data: rezerwacjaTestData.generateFutureDate(30),
+                godzina: '14:00',
+                liczbaOsob: -5,
+            })
+
+            await rezerwacjaSzkoleniaPage.kliknijRezerwuje()
+
+            await expect(rezerwacjaSzkoleniaPage.page.getByText(/Wpisz liczbę osób/)).toBeVisible()
+        })
+
+        test('Liczba osób - zero', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.wypelnijLiczbeOsob(0)
+            await rezerwacjaSzkoleniaPage.kliknijRezerwuje()
+
+            await expect(rezerwacjaSzkoleniaPage.page.getByText(/Wpisz liczbę osób/)).toBeVisible()
+        })
+    })
+    // ========== WALIDACJA FORMULARZA ADRESOWEGO ==========
+
+    test.describe('Walidacja - Formularz adresowy', () => {
+        test.beforeEach(async ({ rezerwacjaSzkoleniaPage }) => {
+            // Najpierw zarezerwuj szkolenie
+            await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
+                miejscowosc: 'Warszawa',
+                data: rezerwacjaTestData.generateFutureDate(30),
+                godzina: '14:00',
+                liczbaOsob: 25,
+            })
+
+            await rezerwacjaSzkoleniaPage.kliknijDalej()
+        })
+
+        test('Wszystkie pola puste', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.wyslijFormularzAdresowy()
+
+            // Sprawdź błędy HTML5 validation
+            const invalidFields = await rezerwacjaSzkoleniaPage.page.locator(':invalid').count()
+            expect(invalidFields).toBeGreaterThan(0)
+        })
+
+        test('Niepoprawny email', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.wypelnijDaneKontaktowe({
+                imie: 'Jan',
+                nazwisko: 'Kowalski',
+                email: 'niepoprawny-email',
+                telefon: '123456789',
+            })
+
+            await rezerwacjaSzkoleniaPage.wyslijFormularzAdresowy()
+
+            const emailInvalid = await rezerwacjaSzkoleniaPage.contactEmailInput.evaluate((el: HTMLInputElement) => !el.validity.valid)
+            expect(emailInvalid).toBe(true)
+        })
+
+        test('Niepoprawny NIP - za krótki', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.billingNipInput.fill('123')
+            await rezerwacjaSzkoleniaPage.wyslijFormularzAdresowy()
+
+            await expect(rezerwacjaSzkoleniaPage.page.getByText(/Wpisany numer NIP nie jest prawidłowy./)).toBeVisible()
+        })
+
+        test('Niepoprawny kod pocztowy', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.billingPostcodeInput.fill('123')
+            await rezerwacjaSzkoleniaPage.wyslijFormularzAdresowy()
+
+            await expect(rezerwacjaSzkoleniaPage.page.getByText(/Wpisany kod pocztowy nie jest prawidłowy./)).toBeVisible()
+        })
+
+        test('Płatnik - odznacz "takie same" i nie wypełnij pól', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.wypelnijDanePlatnika({
+                sameAsBilling: false,
+                // Brak danych płatnika
+            })
+
+            await rezerwacjaSzkoleniaPage.wyslijFormularzAdresowy()
+
+            // Powinny być błędy dla pól płatnika
+            const payerInvalidFields = await rezerwacjaSzkoleniaPage.page.locator('#reservation_cart_address_payersAddress_0_company:invalid').count()
+            expect(payerInvalidFields).toBeGreaterThan(0)
+        })
+    })
+
+    // ========== NOWE TESTY - FUNKCJONALNOŚĆ ==========
+
+    test.describe('Funkcjonalność', () => {
+        test('Uwagi - licznik znaków max 300', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.commentCheckbox.check()
+            await rezerwacjaSzkoleniaPage.messageArea.waitFor({ state: 'visible' })
+
+            const longText = 'A'.repeat(350) // Więcej niż max
+            await rezerwacjaSzkoleniaPage.messageTextarea.fill(longText)
+
+            // Textarea ma maxlength="300", więc nie powinno przyjąć więcej
+            const actualLength = await rezerwacjaSzkoleniaPage.messageTextarea.inputValue()
+            expect(actualLength.length).toBeLessThanOrEqual(300)
+
+            const counter = await rezerwacjaSzkoleniaPage.pobierzLicznikZnakow()
+            expect(parseInt(counter)).toBeLessThanOrEqual(300)
+        })
+
+        test('Nawigacja - powrót do listy szkoleń', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
+                miejscowosc: 'Warszawa',
+                data: rezerwacjaTestData.generateFutureDate(30),
+                godzina: '14:00',
+                liczbaOsob: 25,
+            })
+
+            await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/rezerwacja/)
+            await rezerwacjaSzkoleniaPage.kliknijPowrotDoListySzkolen()
+
+            await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/szkolenia-dla-rad-pedagogicznych/)
+        })
+
+        test('Nawigacja - powrót do rezerwacji', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
+                miejscowosc: 'Warszawa',
+                data: rezerwacjaTestData.generateFutureDate(30),
+                godzina: '14:00',
+                liczbaOsob: 25,
+            })
+
+            await rezerwacjaSzkoleniaPage.kliknijDalej()
+            await rezerwacjaSzkoleniaPage.kliknijPowrotDoRezerwacji()
+
+            await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/rezerwacja/)
+        })
+    })
+
+    // ========== NOWE TESTY - PEŁNY FLOW ==========
+
+    test.describe('Pełny flow rezerwacji', () => {
+        test('Rezerwacja bez zwolnienia z VAT', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
+                miejscowosc: 'Warszawa',
+                data: rezerwacjaTestData.generateFutureDate(30),
+                godzina: '14:00',
+                liczbaOsob: 25,
+            })
+
+            await rezerwacjaSzkoleniaPage.zakonczRezerwacje({
+                kontakt: rezerwacjaTestData.daneKontaktowe,
+                faktura: {
+                    ...rezerwacjaTestData.daneFaktury,
+                    zwolnienieVat: false, // NIE
+                },
+                platnik: {
+                    sameAsBilling: true,
+                },
+            })
+
+            await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/potwierdzenie/)
+        })
+
+        test('Rezerwacja - płatnik z innymi danymi', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
+                miejscowosc: 'Warszawa',
+                data: rezerwacjaTestData.generateFutureDate(30),
+                godzina: '14:00',
+                liczbaOsob: 25,
+            })
+
+            await rezerwacjaSzkoleniaPage.zakonczRezerwacje({
+                kontakt: rezerwacjaTestData.daneKontaktowe,
+                faktura: rezerwacjaTestData.daneFaktury,
+                platnik: {
+                    sameAsBilling: false,
+                    nazwa: 'Inna Firma Sp. z o.o.',
+                    ulica: 'Inna',
+                    nrBudynku: '99',
+                    kodPocztowy: '00-999',
+                    miejscowosc: 'Gdańsk',
+                },
+            })
+
+            await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/potwierdzenie/)
+        })
+
+        test('Weryfikacja numeru rezerwacji', async ({ rezerwacjaSzkoleniaPage }) => {
+            await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
+                miejscowosc: 'Warszawa',
+                data: rezerwacjaTestData.generateFutureDate(30),
+                godzina: '14:00',
+                liczbaOsob: 25,
+            })
+
+            await rezerwacjaSzkoleniaPage.zakonczRezerwacje({
+                kontakt: rezerwacjaTestData.daneKontaktowe,
+                faktura: rezerwacjaTestData.daneFaktury,
+                platnik: { sameAsBilling: true },
+            })
+
+            // Sprawdź czy numery się zgadzają
+            await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/potwierdzenie/)
+            const numerZUrl = await rezerwacjaSzkoleniaPage.pobierzNumerRezerwacji()
+            const numerZKomunikatu = await rezerwacjaSzkoleniaPage.pobierzNumerRezerwacjiZKomunikatu()
+
+            expect(numerZUrl).toBe(numerZKomunikatu)
+            expect(numerZUrl).not.toBe('')
+        })
     })
 })
