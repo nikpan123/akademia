@@ -6,6 +6,11 @@ export class AkademiaPage extends BasePage {
     readonly szkoleniaDlaNauczycieliButton: Locator
     readonly szkoleniaDlaRadPedagogicznychButton: Locator
     readonly oAkademiiButton: Locator
+    readonly wylogujButton: Locator
+    readonly logoButton: Locator
+    readonly kontaktButton: Locator
+    readonly homePageLinks: Locator
+    readonly newsletterLink: Locator
 
     // O akademii
     readonly oAkademiiTekst: Locator
@@ -19,6 +24,8 @@ export class AkademiaPage extends BasePage {
     readonly newsletterMessage: Locator
     readonly newsletterError: Locator
     readonly newsletterEmailRodoError: Locator
+    readonly newsletterText: Locator
+    readonly newsletterRodoText: Locator
 
     constructor(page: Page) {
         super(page)
@@ -27,6 +34,13 @@ export class AkademiaPage extends BasePage {
         this.szkoleniaDlaNauczycieliButton = page.getByText('szkolenia dla nauczycieli')
         this.szkoleniaDlaRadPedagogicznychButton = page.getByText('szkolenia dla rad pedagogicznych')
         this.oAkademiiButton = page.getByRole('link', { name: 'O Akademii' })
+        this.wylogujButton = page.locator('a:has-text("Wyloguj")')
+        this.logoButton = page.locator('.head__logo a').first()
+        this.kontaktButton = page.locator('a[href="/kontakt"]')
+        this.homePageLinks = page.locator('.home-page-links')
+        this.newsletterLink = page.locator('.newsletter-link')
+
+        // Stopka
 
         // O Akademii
         this.oAkademiiTekst = page.locator('.page-description__description')
@@ -43,6 +57,8 @@ export class AkademiaPage extends BasePage {
         this.newsletterMessage = page.locator('small.--color-green')
         this.newsletterError = page.locator('.error-alert')
         this.newsletterEmailRodoError = page.locator('.error-alert.active.left')
+        this.newsletterText = page.locator('.newsletter-link p')
+        this.newsletterRodoText = page.locator('label:has(#newsletter_form_rodo) span')
     }
 
     // ============ NAWIGACJA ============
