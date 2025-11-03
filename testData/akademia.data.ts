@@ -14,6 +14,7 @@ export const akademiaTestData = {
     oAkademiiTekst:
         'Niepubliczna placówka doskonalenia nauczycieli prowadzona przez Instytut Rozwoju Edukacji – Fundację im. Adama Mysiora, wpisana do ewidencji przez Marszałka Województwa Pomorskiego pod numerem 5/2017. Akademia GWO ma akredytację Pomorskiego Kuratora Oświaty na prowadzenie ogólnopolskich szkoleń dla nauczycieli. Numer akredytacji: 177/2024.',
     naglowekStronySzkoleniaDlaRadPedagogicznych: 'Wyszukaj szkolenie',
+    urlAkademii: 'https://akademia.gwodev.pl',
 
     // Generatory
     generateEmail: () => `test-${Date.now()}@playwright.com`,
@@ -28,6 +29,8 @@ export const akademiaTestData = {
 
     // Komunikaty błędów
     bledy: {
+        bladNewsletter: 'Wpisz poprawny e-mail',
+        bladNewsletterEmailRodo: 'Wpisz poprawny e-mail\nZaznacz zgodę na przetwarzanie danych',
         blednyEmail: 'Wpisz poprawny adres e-mail',
         brakRodo: 'Zaznacz zgodę na przetwarzanie danych',
         bladneLogowanie: 'Podany login bądź hasło są niepoprawne.',

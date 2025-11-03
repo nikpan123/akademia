@@ -1,6 +1,27 @@
 import { test, expect } from '../fixtures/akademiaFixtures'
 import { akademiaTestData, DaneZamowieniaBezLogowania, DaneZamowieniaZLogowaniem } from '../testData/akademia.data'
 
+// Helper do generowania unikalnych danych testowych
+const generateTestData = (): DaneZamowieniaBezLogowania => ({
+    email: `test${Date.now()}@test.pl`,
+    phone: '123456789',
+    name: 'Jan',
+    surname: 'Testowy',
+    address: 'Testowa',
+    number: '12',
+    postalCode: '12-123',
+    city: 'Testowo',
+})
+
+// Helper do weryfikacji strony sukcesu
+const assertSuccessPage = async (page: any) => {
+    await expect(page).toHaveURL(/success/)
+    await expect(page.getByText('Potwierdzenie')).toBeVisible()
+    await expect(page.getByText(akademiaTestData.gwoAccount)).toBeVisible()
+    await expect(page.getByText(akademiaTestData.adres)).toBeVisible()
+    await expect(page.getByText('Dziękujemy za złożenie zamówienia!')).toBeVisible()
+}
+
 test.describe('Szkolenia dla nauczycieli', () => {
     test.beforeEach(async ({ szkoleniaDlaNauczycieliPage }) => {
         await szkoleniaDlaNauczycieliPage.otworzSzkoleniaDlaNauczycieli()
@@ -8,63 +29,51 @@ test.describe('Szkolenia dla nauczycieli', () => {
     })
 
     test.describe('Nawigacja', () => {
-        test('Koszyk', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien przejść do koszyka', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.kliknijKoszyk()
-
-            // Asercje
             await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*\/koszyk.*/)
         })
 
-        test('Zmiana widoku', async ({ szkoleniaDlaNauczycieliPage }) => {
-            // Asercje
+        test('powinien wyświetlić przycisk zmiany widoku', async ({ szkoleniaDlaNauczycieliPage }) => {
             await expect(szkoleniaDlaNauczycieliPage.changeViewButton).toBeVisible()
         })
 
-        test('Kontakt', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien przejść na stronę kontaktu', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaKontakt()
-
-            // Asercje
             await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*\/kontakt.*/)
         })
 
-        test('Szczegóły szkolenia - nawigacja do szczegółów', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien przejść do szczegółów szkolenia', async ({ szkoleniaDlaNauczycieliPage }) => {
             const nazwaSzkolenia = await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
-            expect(nazwaSzkolenia).not.toBe('')
 
-            // Asercje
-            const tytulNaStronie = szkoleniaDlaNauczycieliPage.page.locator('h1')
-            await expect(tytulNaStronie).toContainText(nazwaSzkolenia)
+            expect(nazwaSzkolenia).not.toBe('')
+            await expect(szkoleniaDlaNauczycieliPage.page.locator('h1')).toContainText(nazwaSzkolenia)
         })
 
-        test('Powrót do listy szkoleń', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien wrócić do listy szkoleń', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
             await szkoleniaDlaNauczycieliPage.wrocNaListeSzkolen()
-
-            // Asercje
             await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*\/szkolenia-dla-nauczycieli.*/)
         })
 
-        test('Kursy e-learningowe - nawigacja do szczegółów', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien otworzyć losowy kurs e-learningowy', async ({ szkoleniaDlaNauczycieliPage }) => {
             const nazwaKursu = await szkoleniaDlaNauczycieliPage.otworzLosowyKursElearningowy()
 
-            // Asercje
+            expect(nazwaKursu).not.toBe('')
             await expect(szkoleniaDlaNauczycieliPage.page.locator('h1')).toContainText(nazwaKursu)
-            await expect(nazwaKursu).not.toBe('')
         })
     })
 
     test.describe('Stopka', () => {
-        test('Weryfikacja adresu', async ({ szkoleniaDlaNauczycieliPage }) => {
-            // Asercje
-            await expect(szkoleniaDlaNauczycieliPage.adres).toBeVisible({ timeout: 3000 })
+        test('powinien wyświetlić prawidłowy adres', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await expect(szkoleniaDlaNauczycieliPage.adres).toBeVisible()
             const expectedMessage = await szkoleniaDlaNauczycieliPage.adres.innerText()
             expect(expectedMessage).toContain(akademiaTestData.adresWStopce)
         })
 
-        test('Przejście na politykę prywatności', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien przejść na politykę prywatności', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaPolitykePrywatnosci()
 
-            // Asercje
             await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*polityka-prywatnosci.*/)
             await expect(
                 szkoleniaDlaNauczycieliPage.page.getByRole('heading', {
@@ -74,10 +83,9 @@ test.describe('Szkolenia dla nauczycieli', () => {
             ).toBeVisible()
         })
 
-        test('Przejście na regulamin szkoleń', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien przejść na regulamin szkoleń', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaRegulaminSzkolen()
 
-            // Asercje
             await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*regulamin.*/)
             await expect(
                 szkoleniaDlaNauczycieliPage.page.getByRole('heading', {
@@ -87,45 +95,32 @@ test.describe('Szkolenia dla nauczycieli', () => {
             ).toBeVisible()
         })
 
-        test('Przejście na GWO', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien przejść na stronę GWO', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaGwo()
-            // Asercje
             await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/https:\/\/gwo\.pl\/?/)
         })
 
-        test('Przejście na Facebook', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien przejść na Facebook', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaFacebook()
-            // Asercje
             await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/https:\/\/pl-pl\.facebook\.com\/GdanskieWydawnictwoOswiatowe\/?/)
         })
     })
 
     test.describe('Proces zamówienia', () => {
-        test('Zamówienie bez logowania', async ({ szkoleniaDlaNauczycieliPage }) => {
-            const mojeDane: DaneZamowieniaBezLogowania = {
-                email: 'test@test56465465.pl',
-                phone: '123456789',
-                name: 'Jan',
-                surname: 'Testowy',
-                address: 'Testowa',
-                number: '12',
-                postalCode: '12-123',
-                city: 'Testowo',
-            }
-
+        // Wspólny setup: przejście do szczegółów i dodanie do koszyka
+        test.beforeEach(async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
             await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
-            await szkoleniaDlaNauczycieliPage.przejdzPrzezProcesZamowieniaBezLogowania(mojeDane)
-
-            // Asercje
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/success/)
-            await expect(szkoleniaDlaNauczycieliPage.page.getByText('Potwierdzenie')).toBeVisible()
-            await expect(szkoleniaDlaNauczycieliPage.page.getByText(akademiaTestData.gwoAccount)).toBeVisible()
-            await expect(szkoleniaDlaNauczycieliPage.page.getByText(akademiaTestData.adres)).toBeVisible()
-            await expect(szkoleniaDlaNauczycieliPage.page.getByText('Dziękujemy za złożenie zamówienia!')).toBeVisible()
         })
 
-        test('Zamówienie z logowaniem', async ({ szkoleniaDlaNauczycieliPage }) => {
+        test('powinien umożliwić zamówienie bez logowania', async ({ szkoleniaDlaNauczycieliPage }) => {
+            const mojeDane = generateTestData()
+            await szkoleniaDlaNauczycieliPage.przejdzPrzezProcesZamowieniaBezLogowania(mojeDane)
+
+            await assertSuccessPage(szkoleniaDlaNauczycieliPage.page)
+        })
+
+        test('powinien umożliwić zamówienie z logowaniem', async ({ szkoleniaDlaNauczycieliPage }) => {
             const mojeDane: DaneZamowieniaZLogowaniem = {
                 phone: '123456789',
                 name: 'Jan',
@@ -136,117 +131,93 @@ test.describe('Szkolenia dla nauczycieli', () => {
                 city: 'Testowo',
             }
 
-            await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
-            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
             await szkoleniaDlaNauczycieliPage.przejdzPrzezProcesZamowieniaZLogowaniem(mojeDane)
 
-            // Asercje
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/success/)
-            await expect(szkoleniaDlaNauczycieliPage.page.getByText('Potwierdzenie')).toBeVisible()
-            await expect(szkoleniaDlaNauczycieliPage.page.getByText(akademiaTestData.gwoAccount)).toBeVisible()
-            await expect(szkoleniaDlaNauczycieliPage.page.getByText(akademiaTestData.adres)).toBeVisible()
-            await expect(szkoleniaDlaNauczycieliPage.page.getByText('Dziękujemy za złożenie zamówienia!')).toBeVisible()
+            await assertSuccessPage(szkoleniaDlaNauczycieliPage.page)
         })
     })
 
-    test.describe('Proces zamówienia - negatywne ścieżki', () => {
-        test('Brak możliwości przejscia dalej z pustym koszykiem', async ({ szkoleniaDlaNauczycieliPage }) => {
+    test.describe('Proces zamówienia - walidacja', () => {
+        test('nie powinien pozwolić na kontynuację z pustym koszykiem', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.kliknijKoszyk()
 
             await expect(szkoleniaDlaNauczycieliPage.nextButton).not.toBeVisible()
 
             await szkoleniaDlaNauczycieliPage.wrocNaListeSzkolen()
-
             await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/szkolenia-dla-nauczycieli/)
         })
 
-        test('Zamówienie bez wyboru odbiorcy faktury', async ({ szkoleniaDlaNauczycieliPage }) => {
-            await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
-            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
-            const errorAlert = await szkoleniaDlaNauczycieliPage.szkolenieBezOdbiorcyFaktury()
+        test.describe('Testy wymagające szkolenia w koszyku', () => {
+            // Wspólny setup dla testów walidacji
+            test.beforeEach(async ({ szkoleniaDlaNauczycieliPage }) => {
+                await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
+                await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
+            })
 
-            // Asercje
-            await expect(errorAlert).toBeVisible({ timeout: 5000 })
-            await expect(errorAlert).toContainText('Wybierz, na kogo ma być złożone zamówienie.')
-            await expect(errorAlert.locator('img[alt="error"]')).toBeVisible()
-            await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/dane-zamowienia/)
-        })
+            test('powinien wymagać wyboru odbiorcy faktury', async ({ szkoleniaDlaNauczycieliPage }) => {
+                const errorAlert = await szkoleniaDlaNauczycieliPage.szkolenieBezOdbiorcyFaktury()
 
-        test('Usunięcie Szkolenie z koszyka', async ({ szkoleniaDlaNauczycieliPage }) => {
-            await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
-            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
-            await szkoleniaDlaNauczycieliPage.usuniecieSzkoleniaZKoszyka()
+                await expect(errorAlert).toBeVisible()
+                await expect(errorAlert).toContainText('Wybierz, na kogo ma być złożone zamówienie.')
+                await expect(errorAlert.locator('img[alt="error"]')).toBeVisible()
+                await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/dane-zamowienia/)
+            })
 
-            // Asercje
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/szkolenia-dla-nauczycieli/)
-        })
+            test('powinien umożliwić usunięcie szkolenia z koszyka', async ({ szkoleniaDlaNauczycieliPage }) => {
+                await szkoleniaDlaNauczycieliPage.usuniecieSzkoleniaZKoszyka()
 
-        test('Walidacja wszystkich pól formularza: Pusty formularz', async ({ szkoleniaDlaNauczycieliPage }) => {
-            const oczekiwaneKomunikatyWalidacyjneDanych: string[] = [
-                'Wpisz poprawny e-mail.',
-                'Wpisz poprawny numer telefonu.',
-                'Wpisz imię.',
-                'Wpisz nazwisko.',
-                'Wpisz nazwę ulicy.',
-                'Wpisz numer.',
-                'Wpisz kod pocztowy.',
-                'Wpisz miejscowość.',
-            ]
+                await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/szkolenia-dla-nauczycieli/)
+            })
 
-            await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
-            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
-            await szkoleniaDlaNauczycieliPage.handleCartSelectionWithoutLogin()
-            await szkoleniaDlaNauczycieliPage.zatwierdzFormularzZamowienia()
-            await szkoleniaDlaNauczycieliPage.page.waitForSelector('[data-testid="validation-error"]', { state: 'visible' })
+            test('powinien wyświetlić błędy walidacji dla pustego formularza', async ({ szkoleniaDlaNauczycieliPage }) => {
+                const oczekiwaneKomunikaty = [
+                    'Wpisz poprawny e-mail.',
+                    'Wpisz poprawny numer telefonu.',
+                    'Wpisz imię.',
+                    'Wpisz nazwisko.',
+                    'Wpisz nazwę ulicy.',
+                    'Wpisz numer.',
+                    'Wpisz kod pocztowy.',
+                    'Wpisz miejscowość.',
+                ]
 
-            for (const komunikat of oczekiwaneKomunikatyWalidacyjneDanych) {
+                await szkoleniaDlaNauczycieliPage.handleCartSelectionWithoutLogin()
+                await szkoleniaDlaNauczycieliPage.zatwierdzFormularzZamowienia()
+
+                for (const komunikat of oczekiwaneKomunikaty) {
+                    await expect(
+                        szkoleniaDlaNauczycieliPage.page.getByText(komunikat, { exact: true }),
+                        `Błąd walidacji "${komunikat}" nie jest widoczny`
+                    ).toBeVisible()
+                }
+
+                await expect(szkoleniaDlaNauczycieliPage.paymentErrorMessage, 'Błąd "Wybierz formę płatności." nie jest widoczny').toBeVisible()
+
                 await expect(
-                    szkoleniaDlaNauczycieliPage.page.getByText(komunikat, { exact: true }),
-                    `Błąd walidacji danych: "${komunikat}" nie jest widoczny!`
+                    szkoleniaDlaNauczycieliPage.validationErrors,
+                    `Liczba błędów nie zgadza się. Oczekiwano ${oczekiwaneKomunikaty.length}`
+                ).toHaveCount(oczekiwaneKomunikaty.length)
+
+                await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/podsumowanie/)
+            })
+
+            test('powinien wymagać zaakceptowania regulaminów', async ({ szkoleniaDlaNauczycieliPage }) => {
+                const mojeDane = generateTestData()
+
+                await szkoleniaDlaNauczycieliPage.handleCartSelectionWithoutLogin()
+                await szkoleniaDlaNauczycieliPage.fillOrderDetails(mojeDane, true)
+                await szkoleniaDlaNauczycieliPage.page.waitForURL(/podsumowanie/)
+                await szkoleniaDlaNauczycieliPage.orderAndPaymentButton.click()
+                await szkoleniaDlaNauczycieliPage.page.waitForTimeout(5000)
+                await expect(szkoleniaDlaNauczycieliPage.regulationsErrorFrame, 'Oczekiwano dwóch kontenerów regulaminów z ramką błędu').toHaveCount(2)
+
+                await expect(
+                    szkoleniaDlaNauczycieliPage.regulationsErrorAlert,
+                    'Nie pojawił się komunikat "Zaakceptuj regulaminy. Wyraź wymagane zgody."'
                 ).toBeVisible()
-            }
 
-            //  Asercje
-            await expect(szkoleniaDlaNauczycieliPage.paymentErrorMessage, `Błąd "Wybierz formę płatności." nie jest widoczny!`).toBeVisible()
-            const LICZBA_POL_DANYCH = oczekiwaneKomunikatyWalidacyjneDanych.length
-            await expect(szkoleniaDlaNauczycieliPage.validationErrors, `Liczba błędów danych nie zgadza się. Oczekiwano ${LICZBA_POL_DANYCH}.`).toHaveCount(
-                LICZBA_POL_DANYCH,
-                { timeout: 5000 }
-            )
-            await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/podsumowanie/)
-        })
-
-        test('Walidacja checkboxów', async ({ szkoleniaDlaNauczycieliPage }) => {
-            const mojeDane: DaneZamowieniaBezLogowania = {
-                email: 'test@test56465465.pl',
-                phone: '123456789',
-                name: 'Jan',
-                surname: 'Testowy',
-                address: 'Testowa',
-                number: '12',
-                postalCode: '12-123',
-                city: 'Testowo',
-            }
-
-            await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
-            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
-            await szkoleniaDlaNauczycieliPage.handleCartSelectionWithoutLogin()
-            await szkoleniaDlaNauczycieliPage.fillOrderDetails(mojeDane, true)
-            await szkoleniaDlaNauczycieliPage.page.waitForURL(/podsumowanie/)
-            await szkoleniaDlaNauczycieliPage.orderAndPaymentButton.click()
-
-            // Asercje
-            await expect(
-                szkoleniaDlaNauczycieliPage.regulationsErrorFrame,
-                'Oczekiwano, że dwa kontenery regulaminów otrzymają ramkę błędu (.error).'
-            ).toHaveCount(2, { timeout: 10000 })
-
-            await expect(
-                szkoleniaDlaNauczycieliPage.regulationsErrorAlert,
-                'Nie pojawił się boczny komunikat "Zaakceptuj regulaminy. Wyraź wymagane zgody."'
-            ).toBeVisible()
-
-            await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/sukces/)
+                await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/sukces/)
+            })
         })
     })
 })

@@ -5,19 +5,29 @@ export class BasePage {
     readonly page: Page
     readonly env = getEnvironment()
 
+    readonly favicon: Locator
+
     // Header
     readonly kontaktLink: Locator
+    readonly desktopLogo: Locator
 
     // Lokatory cookies - publiczne, żeby były dostępne w klasach dziedziczących
+    readonly cookiePanel: Locator
+    readonly cookieText: Locator
+    readonly cookieLink: Locator
     readonly cookiesModal: Locator
     readonly cookiesAcceptButton: Locator
 
     // Stopka
     readonly adres: Locator
+    readonly cookiesInfo: Locator
+    readonly cookiesLink: Locator
     readonly politykaPrywatnosciButton: Locator
     readonly regulaminSzkolenButton: Locator
     readonly gwoButton: Locator
     readonly facebookButton: Locator
+    readonly gwoIcon: Locator
+    readonly fbIcon: Locator
 
     // Lokatory logowania - wspólne dla Akademii
     readonly zalogujButton: Locator
@@ -28,18 +38,40 @@ export class BasePage {
     readonly accountButton: Locator
     readonly errorMessage: Locator
 
+    //Panel dostępności
+    readonly accToolbar: Locator
+    readonly toggleAccButton: Locator
+    readonly smallLetter: Locator
+    readonly bigLetter: Locator
+    readonly darkContrast: Locator
+    readonly grayscale: Locator
+    readonly underlineLinks: Locator
+
+    // Mobile menu
+    readonly menuButton: Locator
+    readonly menuItems: Locator
+    readonly mobileLogo: Locator
+
     constructor(page: Page) {
         this.page = page
 
+        this.favicon = page.locator('link[rel="icon"]')
+
         // Header
         this.kontaktLink = page.getByRole('link', { name: 'Kontakt' })
+        this.desktopLogo = page.locator('.head__logo:not(.logo__mobile)').first()
 
         // Inicjalizacja lokatorów cookies w konstruktorze
+        this.cookiePanel = page.locator('.cookie-panel')
+        this.cookieText = page.locator('.cookie-panel__text')
+        this.cookieLink = page.locator('.cookie-panel__link')
         this.cookiesModal = page.locator('text=Dbamy o Twoją prywatność')
         this.cookiesAcceptButton = page.locator('button:has-text("Akceptuję i przechodzę do Serwisu")')
 
         // Stopka
         this.adres = page.locator('.footer__powered-text')
+        this.cookiesInfo = page.locator('.footer__powered-text')
+        this.cookiesLink = page.locator('.footer__powered-text a[href*="polityka-plikow-cookies"]')
         this.politykaPrywatnosciButton = page.getByRole('link', {
             name: 'Polityka prywatności',
         })
@@ -48,6 +80,8 @@ export class BasePage {
         })
         this.gwoButton = page.locator('a[href="https://gwo.pl/"]')
         this.facebookButton = page.locator('a[href="https://pl-pl.facebook.com/GdanskieWydawnictwoOswiatowe"]')
+        this.gwoIcon = page.locator('.footer__socials a[href*="gwo.pl"] img')
+        this.fbIcon = page.locator('.footer__socials a[href*="facebook"] img')
 
         // Lokatory logowania
         this.zalogujButton = page.locator('a:has-text("Zaloguj"), button:has-text("Zaloguj")').first()
@@ -57,6 +91,20 @@ export class BasePage {
         this.passwordButton = page.getByTestId('forgottenPassword')
         this.accountButton = page.getByTestId('registerAccount')
         this.errorMessage = page.getByTestId('errorPanel')
+
+        // Panel dostępności
+        this.accToolbar = page.locator('#b-acc-toolbarWrap')
+        this.toggleAccButton = page.locator('[title="Opcje dostępności"]')
+        this.smallLetter = page.locator('.small-letter')
+        this.bigLetter = page.locator('.big-letter')
+        this.darkContrast = page.locator('.b-acc-dark-btn')
+        this.grayscale = page.locator('.b-acc-grayscale')
+        this.underlineLinks = page.locator('.b-acc-toggle-underline')
+
+        // Mobile menu
+        this.menuButton = page.getByRole('banner').getByRole('button')
+        this.menuItems = page.locator('.menu-links__items').first()
+        this.mobileLogo = page.locator('.logo__mobile')
     }
 
     // ============ COOKIES ============
