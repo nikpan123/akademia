@@ -17,6 +17,8 @@ export class AkademiaPage extends BasePage {
     readonly newsletterSubmitButton: Locator
     readonly newsletterRodo: Locator
     readonly newsletterMessage: Locator
+    readonly newsletterError: Locator
+    readonly newsletterEmailRodoError: Locator
 
     constructor(page: Page) {
         super(page)
@@ -39,6 +41,8 @@ export class AkademiaPage extends BasePage {
         this.newsletterSubmitButton = page.getByText('Zapisuję się')
         this.newsletterRodo = page.locator('body > main > div.home-page.container > div.newsletter-link > form > div.checkbox > div > div > label > span')
         this.newsletterMessage = page.locator('small.--color-green')
+        this.newsletterError = page.locator('.error-alert')
+        this.newsletterEmailRodoError = page.locator('.error-alert.active.left')
     }
 
     // ============ NAWIGACJA ============

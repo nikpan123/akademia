@@ -25,7 +25,6 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
         test('Wszystkie pola puste', async ({ rezerwacjaSzkoleniaPage }) => {
             await rezerwacjaSzkoleniaPage.kliknijRezerwuje()
 
-            // Sprawdź błędy walidacji
             const expectedErrors = ['Wybierz miejscowość', 'Wybierz datę', 'Wybierz godzinę', 'Wpisz liczbę osób']
 
             for (const error of expectedErrors) {
@@ -37,7 +36,6 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
             await rezerwacjaSzkoleniaPage.wybierzMiejscowosc('Warszawa')
             await rezerwacjaSzkoleniaPage.kliknijRezerwuje()
 
-            // Powinny być błędy dla pozostałych pól
             await expect(rezerwacjaSzkoleniaPage.page.getByText('Wybierz datę')).toBeVisible()
             await expect(rezerwacjaSzkoleniaPage.page.getByText('Wybierz godzinę')).toBeVisible()
         })
@@ -63,7 +61,6 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
                 liczbaOsob: 25,
             })
 
-            // Nie powinno być błędu
             await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/rezerwacja/)
         })
 
@@ -91,7 +88,6 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
 
     test.describe('Walidacja - Formularz adresowy', () => {
         test.beforeEach(async ({ rezerwacjaSzkoleniaPage }) => {
-            // Najpierw zarezerwuj szkolenie
             await rezerwacjaSzkoleniaPage.zarezerwujSzkolenie({
                 miejscowosc: 'Warszawa',
                 data: rezerwacjaTestData.generateFutureDate(30),
@@ -105,7 +101,6 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
         test('Wszystkie pola puste', async ({ rezerwacjaSzkoleniaPage }) => {
             await rezerwacjaSzkoleniaPage.wyslijFormularzAdresowy()
 
-            // Sprawdź błędy HTML5 validation
             const invalidFields = await rezerwacjaSzkoleniaPage.page.locator(':invalid').count()
             expect(invalidFields).toBeGreaterThan(0)
         })
@@ -141,12 +136,10 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
         test('Płatnik - odznacz "takie same" i nie wypełnij pól', async ({ rezerwacjaSzkoleniaPage }) => {
             await rezerwacjaSzkoleniaPage.wypelnijDanePlatnika({
                 sameAsBilling: false,
-                // Brak danych płatnika
             })
 
             await rezerwacjaSzkoleniaPage.wyslijFormularzAdresowy()
 
-            // Powinny być błędy dla pól płatnika
             const payerInvalidFields = await rezerwacjaSzkoleniaPage.page.locator('#reservation_cart_address_payersAddress_0_company:invalid').count()
             expect(payerInvalidFields).toBeGreaterThan(0)
         })
@@ -162,7 +155,6 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
             const longText = 'A'.repeat(350) // Więcej niż max
             await rezerwacjaSzkoleniaPage.messageTextarea.fill(longText)
 
-            // Textarea ma maxlength="300", więc nie powinno przyjąć więcej
             const actualLength = await rezerwacjaSzkoleniaPage.messageTextarea.inputValue()
             expect(actualLength.length).toBeLessThanOrEqual(300)
 
@@ -245,7 +237,7 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
                 },
             })
 
-            await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/potwierdzenie/)
+            await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/potwierdzenie/, { timeout: 7500 })
         })
 
         test('Weryfikacja numeru rezerwacji', async ({ rezerwacjaSzkoleniaPage }) => {
@@ -262,7 +254,6 @@ test.describe('Rezerwacja szkolenia - Formularze', () => {
                 platnik: { sameAsBilling: true },
             })
 
-            // Sprawdź czy numery się zgadzają
             await expect(rezerwacjaSzkoleniaPage.page).toHaveURL(/potwierdzenie/)
             const numerZUrl = await rezerwacjaSzkoleniaPage.pobierzNumerRezerwacji()
             const numerZKomunikatu = await rezerwacjaSzkoleniaPage.pobierzNumerRezerwacjiZKomunikatu()

@@ -91,8 +91,8 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
         // Komunikaty błędów
         this.errorAlert = page.locator('.error-alert')
         this.validationErrors = page.locator('.validation-error, .error-message')
-        // Formularz adresowy
 
+        // Formularz adresowy
         this.nextButton = page.getByRole('button', { name: 'Dalej' })
         this.backToListLink = page.locator('a.btn.btn-transparent:has-text("Wróć do listy szkoleń")')
         this.backToReservationLink = page.locator('a[href="/rezerwacja"]')
@@ -127,7 +127,6 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
     // ============ WYPEŁNIANIE FORMULARZA REZERWACJI (istniejące metody) ============
 
     async wybierzRodzajSzkolenia(rodzaj: string): Promise<void> {
-        // Tylko jeśli nie jest już wybrany
         const currentValue = await this.courseModeSelect.inputValue()
         if (currentValue !== rodzaj) {
             await this.courseModeSelect.selectOption(rodzaj)
@@ -135,7 +134,6 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
     }
 
     async wybierzPoziomSzkoly(poziom: string): Promise<void> {
-        // Tylko jeśli nie jest już wybrany
         const currentValue = await this.schoolLevelSelect.inputValue()
         if (currentValue !== poziom) {
             await this.schoolLevelSelect.selectOption(poziom)
@@ -152,12 +150,10 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
     }
 
     async wypelnijDate(data: string): Promise<void> {
-        // Format: YYYY-MM-DD (np. '2025-12-15')
         await this.dateInput.fill(data)
     }
 
     async wypelnijGodzine(godzina: string): Promise<void> {
-        // Format: HH:MM (np. '14:30')
         await this.hoursInput.fill(godzina)
     }
 
@@ -166,13 +162,10 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
     }
 
     async dodajUwagi(uwagi: string): Promise<void> {
-        // Zaznacz checkbox "Dodaj uwagi"
         await this.commentCheckbox.check()
 
-        // Poczekaj aż textarea się pojawi (ma klasę .hidden na starcie)
         await this.messageArea.waitFor({ state: 'visible' })
 
-        // Wpisz uwagi
         await this.messageTextarea.fill(uwagi)
     }
 
@@ -205,7 +198,6 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
         await this.billingPostcodeInput.fill(dane.kodPocztowy)
         await this.billingCityInput.fill(dane.miejscowosc)
 
-        // Wybierz radio dla zwolnienia z VAT
         if (dane.zwolnienieVat) {
             await this.taxFreeYesRadio.check()
         } else {
@@ -221,12 +213,10 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
         kodPocztowy?: string
         miejscowosc?: string
     }): Promise<void> {
-        // Zaznacz lub odznacz checkbox "Dane takie same jak nabywcy"
         if (dane.sameAsBilling) {
             await this.sameAsBillingCheckbox.check()
         } else {
             await this.sameAsBillingCheckbox.uncheck()
-            // Poczekaj na pojawienie się pól (dynamicznie)
             await this.page.waitForSelector('#reservation_cart_address_payersAddress_0_company', { state: 'visible' })
 
             if (dane.nazwa) await this.payerCompanyInput.fill(dane.nazwa)
@@ -239,7 +229,6 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
 
     async dodajKolejnegoPlatnika(): Promise<void> {
         await this.addPayerButton.click()
-        // Tutaj można dodać logikę dla nowych pól, jeśli potrzeba (np. payersAddress[1]...)
     }
 
     async wyslijFormularzAdresowy(): Promise<void> {
@@ -270,7 +259,6 @@ export class RezerwacjaSzkoleniaPage extends BasePage {
     }
 
     async pobierzNumerRezerwacji(): Promise<string> {
-        // Z URL: /rezerwacja/123
         const url = this.page.url()
         const match = url.match(/\/rezerwacja\/(\d+)/)
         return match ? match[1] : ''
