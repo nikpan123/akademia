@@ -1,5 +1,4 @@
 import { Page, Locator } from '@playwright/test'
-import { getEnvironment } from '../config/environments'
 import { BasePage } from './BasePage'
 
 export class MojeGwoLoginPage extends BasePage {
