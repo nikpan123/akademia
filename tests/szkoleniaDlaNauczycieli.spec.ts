@@ -201,7 +201,7 @@ test.describe('Szkolenia dla nauczycieli', () => {
                 await szkoleniaDlaNauczycieliPage.fillOrderDetails(mojeDane, true)
                 await szkoleniaDlaNauczycieliPage.page.waitForURL(/podsumowanie/)
                 await szkoleniaDlaNauczycieliPage.orderAndPaymentButton.click()
-                await szkoleniaDlaNauczycieliPage.page.waitForTimeout(5000)
+                await szkoleniaDlaNauczycieliPage.regulationsErrorFrame.first().waitFor({ state: 'visible', timeout: 7500 })
                 await expect(szkoleniaDlaNauczycieliPage.regulationsErrorFrame, 'Oczekiwano dwóch kontenerów regulaminów z ramką błędu').toHaveCount(2)
 
                 await expect(
