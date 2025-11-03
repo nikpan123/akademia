@@ -23,13 +23,13 @@ const assertSuccessPage = async (page: any) => {
 test.describe('Szkolenia dla nauczycieli', () => {
     test.beforeEach(async ({ szkoleniaDlaNauczycieliPage }) => {
         await szkoleniaDlaNauczycieliPage.otworzSzkoleniaDlaNauczycieli()
-        await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*\/szkolenia-dla-nauczycieli.*/)
+        await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/szkolenia-dla-nauczycieli/)
     })
 
     test.describe('Nawigacja', () => {
         test('Przejście do koszyka', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.kliknijKoszyk()
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*\/koszyk.*/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/koszyk/)
         })
 
         test('Przycisk zmiany widoku', async ({ szkoleniaDlaNauczycieliPage }) => {
@@ -38,7 +38,7 @@ test.describe('Szkolenia dla nauczycieli', () => {
 
         test('Przejście na stronę kontaktu', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaKontakt()
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*\/kontakt.*/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/kontakt/)
         })
 
         test('Przejście na szczegóły spotkania', async ({ szkoleniaDlaNauczycieliPage }) => {
@@ -51,7 +51,7 @@ test.describe('Szkolenia dla nauczycieli', () => {
         test('Powrót na listę szkoleń', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
             await szkoleniaDlaNauczycieliPage.wrocNaListeSzkolen()
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*\/szkolenia-dla-nauczycieli.*/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/szkolenia-dla-nauczycieli/)
         })
 
         test('Przejście na szczegóły losowego learningu', async ({ szkoleniaDlaNauczycieliPage }) => {
@@ -72,7 +72,7 @@ test.describe('Szkolenia dla nauczycieli', () => {
         test('Przejście na politykę prywatności', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaPolitykePrywatnosci()
 
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*polityka-prywatnosci.*/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/polityka-prywatnosci/)
             await expect(
                 szkoleniaDlaNauczycieliPage.page.getByRole('heading', {
                     name: 'Polityka Prywatności',
@@ -84,7 +84,7 @@ test.describe('Szkolenia dla nauczycieli', () => {
         test('Przejście na regulamin szkoleń', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaRegulaminSzkolen()
 
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/.*regulamin.*/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/regulamin/)
             await expect(
                 szkoleniaDlaNauczycieliPage.page.getByRole('heading', {
                     name: 'Regulaminy',
