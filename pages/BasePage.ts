@@ -126,8 +126,16 @@ export class BasePage {
     // ============ NAWIGACJA ============
 
     async otworzStrone(url: string): Promise<void> {
-        await this.page.goto(url)
-        await this.akceptujCookiesJesliWidoczne()
+        try {
+            await this.page.goto(url, {
+                waitUntil: 'domcontentloaded',
+                timeout: 30000,
+            })
+            await this.akceptujCookiesJesliWidoczne()
+        } catch (error) {
+            console.error(`Nie udało się otworzyć strony: ${url}`, error)
+            throw error
+        }
     }
 
     async otworzAkademie(): Promise<void> {
@@ -221,5 +229,24 @@ export class BasePage {
 
     async waitForLoadState(): Promise<void> {
         await this.page.waitForLoadState('networkidle')
+    }
+
+    async debugWaitForElement(locator: Locator, name: string): Promise<void> {
+        console.log(`Oczekiwanie na element: ${name}`)
+        const startTime = Date.now()
+
+        try {
+            await locator.waitFor({ state: 'visible', timeout: 10000 })
+            console.log(`✓ Element ${name} znaleziony po ${Date.now() - startTime}ms`)
+        } catch (error) {
+            console.error(`✗ Element ${name} nie znaleziony po ${Date.now() - startTime}ms`)
+
+            // Screenshot do debugowania
+            await this.page.screenshot({
+                path: `debug-${name}-${Date.now()}.png`,
+                fullPage: true,
+            })
+            throw error
+        }
     }
 }

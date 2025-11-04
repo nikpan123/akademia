@@ -73,9 +73,8 @@ test.describe('Formularz Kontaktowy', () => {
 
     test('weryfikacja błędu - brak wypełnienia wymaganych pól', async ({ page }) => {
         const formularz = new KontaktPage(page)
-
+        await formularz.akceptujCookies()
         await formularz.wyslijFormularz()
-
         await expect(formularz.errorAlert).toBeVisible()
     })
 })

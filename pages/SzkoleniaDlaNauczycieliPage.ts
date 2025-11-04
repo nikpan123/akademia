@@ -167,9 +167,16 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
 
     async dodajSzkolenieDoKoszyka(index: number = 0): Promise<void> {
         const radio = this.getRadioButtonDlaTerminu(index)
-        await radio.check()
+
+        await radio.waitFor({ state: 'visible', timeout: 5000 })
+        await expect(radio).toBeEnabled()
+        await radio.scrollIntoViewIfNeeded()
+        await radio.check({ force: false })
         await expect(radio).toBeChecked()
+        await this.orderButton.waitFor({ state: 'visible' })
+        await expect(this.orderButton).toBeEnabled()
         await this.orderButton.click()
+        await this.page.waitForLoadState('networkidle')
     }
 
     private async fillInputField(selector: string, value: string): Promise<void> {

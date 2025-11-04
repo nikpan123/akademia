@@ -1,8 +1,14 @@
 import { test, expect } from '../fixtures/akademiaFixtures'
 import { akademiaTestData, DaneZamowieniaBezLogowania, DaneZamowieniaZLogowaniem } from '../testData/akademia.data'
 
+const TEST_CONFIG = {
+    MAX_RETRIES: 3,
+    TIMEOUT: 10000,
+    WAIT_FOR_ANIMATION: 300,
+}
+
 const generateTestData = (): DaneZamowieniaBezLogowania => ({
-    email: `test${Date.now()}@test.pl`,
+    email: `test.${Date.now()}.${Math.random().toString(36).substring(7)}@test.pl`,
     phone: '123456789',
     name: 'Jan',
     surname: 'Testowy',
@@ -42,10 +48,19 @@ test.describe('Szkolenia dla nauczycieli', () => {
         })
 
         test('Przejście na szczegóły spotkania', async ({ szkoleniaDlaNauczycieliPage }) => {
-            const nazwaSzkolenia = await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
+            await szkoleniaDlaNauczycieliPage.szkoleniaButton.first().waitFor({
+                state: 'visible',
+                timeout: 10000,
+            })
 
+            const nazwaSzkolenia = await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
             expect(nazwaSzkolenia).not.toBe('')
-            await expect(szkoleniaDlaNauczycieliPage.page.locator('h1')).toContainText(nazwaSzkolenia)
+            expect(nazwaSzkolenia.length).toBeGreaterThan(3)
+            await szkoleniaDlaNauczycieliPage.page.waitForLoadState('networkidle')
+            const h1 = szkoleniaDlaNauczycieliPage.page.locator('h1')
+            await h1.waitFor({ state: 'visible', timeout: 5000 })
+            const h1Text = await h1.textContent()
+            expect(h1Text).toContain(nazwaSzkolenia)
         })
 
         test('Powrót na listę szkoleń', async ({ szkoleniaDlaNauczycieliPage }) => {
@@ -211,6 +226,63 @@ test.describe('Szkolenia dla nauczycieli', () => {
 
                 await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/sukces/)
             })
+        })
+    })
+
+    test.describe('Proces zamówienia z retry mechanism', () => {
+        test.beforeEach(async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.otworzSzkoleniaDlaNauczycieli()
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/szkolenia-dla-nauczycieli/)
+        })
+
+        test('Zamówienie bez logowania - stabilna wersja', async ({ szkoleniaDlaNauczycieliPage }) => {
+            let nazwaSzkolenia = ''
+            for (let attempt = 0; attempt < TEST_CONFIG.MAX_RETRIES; attempt++) {
+                try {
+                    nazwaSzkolenia = await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
+                    if (nazwaSzkolenia) break
+                } catch (error) {
+                    if (attempt === TEST_CONFIG.MAX_RETRIES - 1) throw error
+                    await szkoleniaDlaNauczycieliPage.page.reload()
+                }
+            }
+
+            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
+
+            const mojeDane = generateTestData()
+            await szkoleniaDlaNauczycieliPage.przejdzPrzezProcesZamowieniaBezLogowania(mojeDane)
+
+            await assertSuccessPage(szkoleniaDlaNauczycieliPage.page)
+        })
+    })
+
+    test.describe('Edge cases i scenariusze graniczne', () => {
+        test('Próba dodania szkolenia bez dostępnych terminów', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
+
+            const liczbaTerminow = await szkoleniaDlaNauczycieliPage.radioButton.count()
+
+            if (liczbaTerminow === 0) {
+                await expect(szkoleniaDlaNauczycieliPage.orderButton).toBeDisabled()
+                // Lub oczekuj komunikatu o braku terminów
+                await expect(szkoleniaDlaNauczycieliPage.page.locator('text=Brak dostępnych terminów')).toBeVisible()
+            }
+        })
+
+        test('Walidacja formatu kodu pocztowego', async ({ szkoleniaDlaNauczycieliPage }) => {
+            await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
+            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
+            await szkoleniaDlaNauczycieliPage.handleCartSelectionWithoutLogin()
+
+            // Test nieprawidłowych formatów
+            const invalidPostalCodes = ['123', '12345', 'AB-CDE', '12-12a']
+
+            for (const postalCode of invalidPostalCodes) {
+                await szkoleniaDlaNauczycieliPage.page.fill('#cart_address_billingAddress_postcode', postalCode)
+                await szkoleniaDlaNauczycieliPage.nextButton.click()
+
+                await expect(szkoleniaDlaNauczycieliPage.page.locator('text=Wpisany kod pocztowy nie jest prawidłowy.')).toBeVisible()
+            }
         })
     })
 })
