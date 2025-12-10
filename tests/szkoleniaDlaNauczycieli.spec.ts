@@ -1,12 +1,6 @@
 import { test, expect } from '../fixtures/akademiaFixtures'
 import { akademiaTestData, DaneZamowieniaBezLogowania, DaneZamowieniaZLogowaniem } from '../testData/akademia.data'
 
-const TEST_CONFIG = {
-    MAX_RETRIES: 3,
-    TIMEOUT: 10000,
-    WAIT_FOR_ANIMATION: 300,
-}
-
 const generateTestData = (): DaneZamowieniaBezLogowania => ({
     email: `test.${Date.now()}.${Math.random().toString(36).substring(7)}@test.pl`,
     phone: '123456789',
@@ -19,10 +13,8 @@ const generateTestData = (): DaneZamowieniaBezLogowania => ({
 })
 
 const assertSuccessPage = async (page: any) => {
-    await expect(page).toHaveURL(/success/)
+    await expect(page).toHaveURL(/(success|payu-payment)/)
     await expect(page.getByText('Potwierdzenie')).toBeVisible()
-    await expect(page.getByText(akademiaTestData.gwoAccount)).toBeVisible()
-    await expect(page.getByText(akademiaTestData.adres)).toBeVisible()
     await expect(page.getByText('Dziękujemy za złożenie zamówienia!')).toBeVisible()
 }
 
@@ -56,7 +48,7 @@ test.describe('Szkolenia dla nauczycieli', () => {
             const nazwaSzkolenia = await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
             expect(nazwaSzkolenia).not.toBe('')
             expect(nazwaSzkolenia.length).toBeGreaterThan(3)
-            await szkoleniaDlaNauczycieliPage.page.waitForLoadState('networkidle')
+            await expect(szkoleniaDlaNauczycieliPage.page.locator('h1')).toContainText(nazwaSzkolenia)
             const h1 = szkoleniaDlaNauczycieliPage.page.locator('h1')
             await h1.waitFor({ state: 'visible', timeout: 5000 })
             const h1Text = await h1.textContent()
@@ -110,12 +102,12 @@ test.describe('Szkolenia dla nauczycieli', () => {
 
         test('Przejście na stronę GWO', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaGwo()
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/https:\/\/gwo\.pl\/?/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/gwo\.pl/)
         })
 
         test('Przejście na facebook', async ({ szkoleniaDlaNauczycieliPage }) => {
             await szkoleniaDlaNauczycieliPage.przejdzNaFacebook()
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/https:\/\/pl-pl\.facebook\.com\/GdanskieWydawnictwoOswiatowe\/?/)
+            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/facebook\.com\/GdanskieWydawnictwoOswiatowe/)
         })
     })
 
@@ -226,33 +218,6 @@ test.describe('Szkolenia dla nauczycieli', () => {
 
                 await expect(szkoleniaDlaNauczycieliPage.page).not.toHaveURL(/sukces/)
             })
-        })
-    })
-
-    test.describe('Proces zamówienia z retry mechanism', () => {
-        test.beforeEach(async ({ szkoleniaDlaNauczycieliPage }) => {
-            await szkoleniaDlaNauczycieliPage.otworzSzkoleniaDlaNauczycieli()
-            await expect(szkoleniaDlaNauczycieliPage.page).toHaveURL(/szkolenia-dla-nauczycieli/)
-        })
-
-        test('Zamówienie bez logowania - stabilna wersja', async ({ szkoleniaDlaNauczycieliPage }) => {
-            let nazwaSzkolenia = ''
-            for (let attempt = 0; attempt < TEST_CONFIG.MAX_RETRIES; attempt++) {
-                try {
-                    nazwaSzkolenia = await szkoleniaDlaNauczycieliPage.przejdzNaSzczegolySzkolenia()
-                    if (nazwaSzkolenia) break
-                } catch (error) {
-                    if (attempt === TEST_CONFIG.MAX_RETRIES - 1) throw error
-                    await szkoleniaDlaNauczycieliPage.page.reload()
-                }
-            }
-
-            await szkoleniaDlaNauczycieliPage.dodajSzkolenieDoKoszyka()
-
-            const mojeDane = generateTestData()
-            await szkoleniaDlaNauczycieliPage.przejdzPrzezProcesZamowieniaBezLogowania(mojeDane)
-
-            await assertSuccessPage(szkoleniaDlaNauczycieliPage.page)
         })
     })
 

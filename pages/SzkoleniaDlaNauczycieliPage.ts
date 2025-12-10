@@ -68,7 +68,7 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         this.cartWithLogin = page.getByRole('button', { name: 'Loguję się' })
         this.onMeRadioButton = page.locator('label:has-text("na mnie")')
         this.nextButton = page.getByRole('button', { name: 'Dalej' })
-        this.paymentMethodRadioButton = page.locator('label:has-text("Przelew na konto GWO")')
+        this.paymentMethodRadioButton = page.locator('label:has-text("PayU")')
         this.regulationsCheckbox = page.getByText('* Akceptuję regulamin:')
         this.renouncementCheckbox = page.getByText('* Wyrażam zgodę na')
         this.orderAndPaymentButton = page.getByRole('button', { name: 'Zamawiam i płacę' })
@@ -228,7 +228,7 @@ export class SzkoleniaDlaNauczycieliPage extends BasePage {
         await this.renouncementCheckbox.check()
         await expect(this.renouncementCheckbox).toBeChecked()
         await this.orderAndPaymentButton.click()
-        await this.page.waitForURL(/success/)
+        await this.page.waitForURL(/success|payu-payment/)
     }
 
     async przejdzPrzezProcesZamowieniaBezLogowania(dane: DaneZamowieniaBezLogowania): Promise<void> {
